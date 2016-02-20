@@ -3,7 +3,8 @@ knitr::opts_chunk$set(
   cache=FALSE,
   comment="#>",
   collapse=TRUE, 
-  echo=TRUE
+  echo=TRUE, 
+  fig.width = 7
 )
 library(knitr); library(merTools)
 
@@ -147,7 +148,7 @@ ggplot(tempdf, aes(x = item, y = yhat, group = Gender)) +
 
 ## ------------------------------------------------------------------------
 exampPreds <- predictInterval(m2, newdata = tempdf, 
-                              type = "probability")
+                              type = "probability", level = 0.8)
 
 tempdf <- cbind(tempdf, exampPreds)
 
@@ -160,8 +161,8 @@ ggplot(tempdf, aes(x = item, y = fit, ymin = lwr, ymax = upr,
 
 ## ------------------------------------------------------------------------
 exampPreds <- predictInterval(m2, newdata = tempdf, 
-                              type = "probability", include.resid.var = FALSE)
-
+                              type = "probability", 
+                              include.resid.var = FALSE, level = 0.8)
 tempdf <- cbind(tempdf[, 1:8], exampPreds)
 
 ggplot(tempdf, aes(x = item, y = fit, ymin = lwr, ymax = upr, 

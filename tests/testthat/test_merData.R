@@ -42,9 +42,9 @@ test_that("Sanitize names renames variables in data.frame", {
   badMod <- lmer(distance ~ factor(Sex) + (0 + age + nsex|Subject),
                  data=Orthodont)
   expect_false(identical(names(badMod@frame),
-                         names(sanitizeNames(badMod@frame))))
-  expect_is(sanitizeNames(badMod@frame), "data.frame")
-  expect_identical(names(sanitizeNames(badMod@frame))[2], "Sex")
+                         names(merTools:::sanitizeNames(badMod@frame))))
+  expect_is(merTools:::sanitizeNames(badMod@frame), "data.frame")
+  expect_identical(names(merTools:::sanitizeNames(badMod@frame))[2], "Sex")
   expect_identical(names(badMod@frame)[2], "factor(Sex)")
 })
 
@@ -55,8 +55,8 @@ context("Strip attributes")
 
 test_that("Attributes can be stripped from data.frame", {
   full <- names(attributes(lmerSlope1@frame))
-  redu <- names(attributes(stripAttributes(lmerSlope1@frame)))
-  redu2 <- names(attributes(stripAttributes(glmer3LevSlope@frame)))
+  redu <- names(attributes(merTools:::stripAttributes(lmerSlope1@frame)))
+  redu2 <- names(attributes(merTools:::stripAttributes(glmer3LevSlope@frame)))
   expect_true(length(full) > length(redu))
   expect_true(all(redu %in% full))
   expect_true(all(redu %in% c("names", "row.names", "class")))
@@ -115,8 +115,8 @@ context("Collapse frame")
 ################################################
 
 test_that("Collapsing a dataframe results in single row", {
-  data1 <- collapseFrame(Orthodont)
-  data2 <- collapseFrame(grouseticks)
+  data1 <- merTools:::collapseFrame(Orthodont)
+  data2 <- merTools:::collapseFrame(grouseticks)
   expect_equal(length(data1), length(Orthodont))
   expect_equal(length(data2), length(grouseticks))
   expect_equal(nrow(data1), 1)
@@ -139,12 +139,12 @@ context("Subset by a list")
 test_that("Data can be subset by a list", {
   list11 <- list("Sex" = "Male")
   list12 <- list("Sex" = "Male", "Subject" = "M05")
-  data11 <- subsetList(Orthodont, list11)
-  data12 <- subsetList(Orthodont, list12)
+  data11 <- merTools:::subsetList(Orthodont, list11)
+  data12 <- merTools:::subsetList(Orthodont, list12)
   list21 <- list("YEAR" = "95")
   list22 <- list("LOCATION" = "32", "BROOD" = "503")
-  data21 <- subsetList(grouseticks, list21)
-  data22 <- subsetList(grouseticks, list22)
+  data21 <- merTools:::subsetList(grouseticks, list21)
+  data22 <- merTools:::subsetList(grouseticks, list22)
   expect_equal(length(data11), length(Orthodont))
   expect_equal(length(data21), length(grouseticks))
   expect_equal(length(data12), length(Orthodont))
@@ -193,10 +193,10 @@ context("Shuffle")
 ################################################
 
 test_that("Data can be shuffled", {
-  expect_equal(nrow(Orthodont), nrow(shuffle(Orthodont)))
-  expect_equal(ncol(Orthodont), ncol(shuffle(Orthodont)))
-  expect_equal(nrow(grouseticks), nrow(shuffle(grouseticks)))
-  expect_equal(ncol(grouseticks), ncol(shuffle(grouseticks)))
+  expect_equal(nrow(Orthodont), nrow(merTools:::shuffle(Orthodont)))
+  expect_equal(ncol(Orthodont), ncol(merTools:::shuffle(Orthodont)))
+  expect_equal(nrow(grouseticks), nrow(merTools:::shuffle(grouseticks)))
+  expect_equal(ncol(grouseticks), ncol(merTools:::shuffle(grouseticks)))
 })
 
 ###############################################
@@ -339,3 +339,31 @@ test_that("Subsets work", {
   mylist3 <- list("YEAR" = "97", "LOCATION" = c("16", "56"))
   data3 <- draw(glmer3LevSlope, type = 'average', varList = mylist3)
 })
+
+test_that("Nested specifications work", {
+  library(ggplot2)
+  mod1 <- lmer(sleep_total ~ bodywt + (1|vore/order), data=msleep)
+  data1 <- draw(mod1, "random")
+  expect_is(data1, "data.frame")
+  data2 <- draw(mod1, "average")
+  expect_is(data2, "data.frame")
+  mylist1 <- list("vore" = "carni")
+  mylist2 <- list("order" = "Cetacea")
+  data1 <- draw(mod1, "random", varList = mylist1)
+  expect_is(data1, "data.frame")
+  expect_identical(as.character(data1$vore), "carni")
+  data1 <- draw(mod1, "random", varList = mylist2)
+  expect_is(data1, "data.frame")
+  expect_identical(as.character(data1$order), "Cetacea")
+  data1 <- draw(mod1, "average", varList = mylist1)
+  expect_is(data1, "data.frame")
+  expect_identical(as.character(data1$vore), "carni")
+  data1 <- draw(mod1, "average", varList = mylist2)
+  expect_is(data1, "data.frame")
+  expect_identical(as.character(data1$order), "Cetacea")
+  fm1 <- lmer(Reaction ~ Days + (Days | Subject), sleepstudy)
+  data1 <- draw(fm1, type = "average", varList = list("Subject" = "308"))
+  expect_is(data1, "data.frame")
+  expect_identical(as.character(data1$Subject), "308")
+})
+

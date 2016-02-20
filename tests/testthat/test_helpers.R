@@ -3,8 +3,8 @@
 context("Trimming data frame")
 test_that("Trimming results in correct size", {
   data(InstEval)
-  trimDat <- trimModelFrame(InstEval)
-  expect_more_than(nrow(InstEval), nrow(trimModelFrame(InstEval)))
+  trimDat <- merTools:::trimModelFrame(InstEval)
+  expect_more_than(nrow(InstEval), nrow( merTools:::trimModelFrame(InstEval)))
   expect_equal(nrow(trimDat), 4065)
   cbpp$obs <- 1:nrow(cbpp)
   d1 <- cbpp
@@ -93,3 +93,4 @@ test_that("Formula works for interactions", {
   expect_is(merTools:::formulaBuild(fm), "formula")
   expect_identical(merTools:::formulaBuild(fm), as.formula("z ~ a * b * c + x + I(x^2)"))
 })
+

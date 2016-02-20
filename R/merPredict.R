@@ -15,7 +15,14 @@
 #' @param include.resid.var logical, include or exclude the residual variance for
 #' linear models
 #' @param returnSims logical, should all n.sims simulations be returned?
-#' @return a data.frame iwth three columns:
+#' @param seed numeric, optional argument to set seed for simulations
+#' @param .parallel, logical should parallel computation be used, default is FALSE
+#' @param .paropts, a list of additional options passed into the foreach function
+#' when parallel computation is enabled. This is important if (for example) your
+#' code relies on external data or packages: use the .export and .packages arguments
+#'  to supply them so that all cluster nodes have the correct environment set up
+#'  for computing.
+#' @return a data.frame with three columns:
 #' \describe{
 #'     \item{\code{fit}}{The center of the distribution of predicted values as defined by
 #'     the \code{stat} parameter.}
@@ -50,10 +57,10 @@
 #' to allow the user to estimate the variability in \code{theta} from a larger
 #' model by bootstrapping the model fit on a subset, to allow faster estimation.
 #' @export
-#' @importFrom mvtnorm rmvnorm
 #' @import lme4
+#' @import plyr
 #' @importFrom abind abind
-#' @importFrom plyr rbind.fill
+#' @importFrom mvtnorm rmvnorm
 #' @examples
 #' m1 <- lmer(Reaction ~ Days + (1 | Subject), sleepstudy)
 #' regFit <- predict(m1, newdata = sleepstudy[11, ]) # a single value is returned
@@ -68,17 +75,34 @@
 #'  regFit <- predict(gm2, newdata = d1[1:10, ], type = "response")
 #'  intFit <- predictInterval(gm2, newdata = d1[1:10, ], type = "probability")
 #'  intFit <- predictInterval(gm2, newdata = d1[1:10, ], type = "linear.prediction")
-predictInterval <- function(merMod, newdata, level = 0.95,
-                            n.sims=100, stat=c("median","mean"),
+predictInterval <- function(merMod, newdata, level = 0.8,
+                            n.sims = 1000, stat=c("median","mean"),
                             type=c("linear.prediction", "probability"),
-                            include.resid.var=TRUE, returnSims = FALSE){
-  outs <- newdata
+                            include.resid.var=TRUE, returnSims = FALSE,
+                            seed=NULL, .parallel = FALSE, .paropts = NULL){
+  if(missing(newdata)){
+    newdata <- merMod@frame
+  }
+  if(any(c("data.frame") != class(newdata))){
+    if(any(c("tbl_df", "tbl") %in% class(newdata))){
+      newdata <- as.data.frame(newdata)
+      warning("newdata is tbl_df or tbl object from dplyr package and has been
+              coerced to a data.frame")
+    } else{
+     newdata <- as.data.frame(newdata)
+    }
+  }
   predict.type <- match.arg(type,
                             c("linear.prediction", "probability"),
                             several.ok = FALSE)
   stat.type <- match.arg(stat,
                          c("median","mean"),
                          several.ok = FALSE)
+
+  if (!is.null(seed))
+    set.seed(seed)
+  else if (!exists(".Random.seed", envir = .GlobalEnv))
+    runif(1)
 
   ##First: check if it is a GLMM or NLMM and draw from sigma distribution or incorporate scale parameter if GLMM
   merMod.devcomp <- getME(merMod, "devcomp")
@@ -94,94 +118,112 @@ predictInterval <- function(merMod, newdata, level = 0.95,
   }
   else if (merMod.devcomp$dims[["GLMM"]] == TRUE &
            merMod@resp$family$family == "binomial" &
-           merMod@resp$family$link == "logit") {
+           merMod@resp$family$link %in% c("logit", "probit")) {
     sigmahat <- rep(1,n.sims)
   }
   else {
-    stop("    Prediction for this NLMMs or GLMMs that are not mixed logistic regressions is not yet implemented.")
+    warning("   Prediction for NLMMs or GLMMs that are not mixed binomial regressions is not tested. Sigma set at 1.")
+    sigmahat <- rep(1,n.sims)
   }
+  newdata.modelMatrix <- buildModelMatrix(model= merMod, newdata = newdata)
 
-  # Fix formula to allow for random slopes not in the fixed slopes
-  matrixForm <- formulaBuild(merMod)
-
-  if(identical(newdata, merMod@frame)){
-    newdata.modelMatrix <- model.matrix(matrixForm,
-                                        data = merMod@frame)
-  } else{
-    # combine modelframe trimmed and newdata to ensure proper factor expansion
-    tmp <- plyr::rbind.fill(newdata, trimModelFrame(merMod@frame))
-    modDV <- as.character(formula(merMod)[2])
-    tmp[, modDV] <- 1 # avoid dropping cases without a valid value for the DV
-    newdata.modelMatrix <- model.matrix(matrixForm,
-                                        data = tmp)[1:nrow(newdata), , drop=FALSE]
-    rm(tmp)
-  }
-  ##Right now I am not multiplying the BLUP variance covariance matrices by our
-  ##draw of sigma (for linear models) because their variation is unique.  If anything,
-  ##this is where one would multiply them by draws of theta from the model.
   re.xb <- vector(getME(merMod, "n_rfacs"), mode = "list")
   names(re.xb) <- names(ngrps(merMod))
     for(j in names(re.xb)){
     reMeans <- as.matrix(ranef(merMod)[[j]])
     reMatrix <- attr(ranef(merMod, condVar=TRUE)[[j]], which = "postVar")
     # OK, let's knock out all the random effects we don't need
-    obslvl <- unique(as.character(newdata[, j]))
-    alllvl <- rownames(reMeans)
-    keep <- intersect(obslvl, alllvl)
+    if(j %in% names(newdata)){ # get around if names do not line up because of nesting
+      obslvl <- unique(as.character(newdata[, j]))
+      alllvl <- rownames(reMeans)
+      keep <- intersect(obslvl, alllvl)
+    } else {
+      obslvl <- colnames(newdata.modelMatrix)
+      alllvl <- rownames(reMeans)
+      keep <- intersect(obslvl, alllvl)
+    }
     # Add switch if no random groups are observed to avoid indexing errors,
     # we burn 1 sample of 1 group of all coefficients that will eventually
     # be multiplied by zero later on
-    if(length(keep) > 0){
+    if(length(keep) > 0 & !identical(keep, alllvl)){
       reMeans <- reMeans[keep, , drop=FALSE]
       dimnames(reMatrix)[[3]] <- alllvl
       reMatrix <- reMatrix[, , keep, drop = FALSE]
+    } else if(length(keep) > 0 & identical(keep, alllvl)){
+      dimnames(reMatrix)[[3]] <- alllvl
     } else{
       reMeans <- reMeans[1, , drop=FALSE]
       reMatrix <- reMatrix[, , 1, drop = FALSE]
     }
-    #
-    reSimA <- array(data = NA, dim = c(nrow(reMeans), ncol(reMeans), n.sims))
+    # -- INSERT chunking code here
+    reSimA <- array(data = NA, dim = c(nrow(reMeans), ncol(reMeans), n.sims),
+                    dimnames = list(attr(reMeans, "dimnames")[[1]],
+                                    attr(reMeans, "dimnames")[[2]],
+                                    NULL))
     for(k in 1:nrow(reMeans)){
-      meanTmp <- as.matrix(reMeans[k, ])
+      meanTmp <- reMeans[k, ]
       matrixTmp <- as.matrix(reMatrix[,,k])
-      reSimA[k, ,] <- mvtnorm::rmvnorm(n.sims,
+      reSimA[k, ,] <- as.matrix(mvtnorm::rmvnorm(n= n.sims,
                                        mean=meanTmp,
-                                       sigma=matrixTmp,
-                                       method="svd")
-      rownames(reSimA) <- rownames(reMeans)
-      colnames(reSimA) <- colnames(reMeans)
+                                       sigma=matrixTmp, method = "chol"))
     }
-     tmp <- cbind(as.data.frame(newdata.modelMatrix), var = newdata[, j])
-     keep <- names(tmp)[names(tmp) %in% dimnames(reSimA)[[2]]]
-     tmp <- tmp[, c(keep, "var"), drop = FALSE]
-     tmp[, "var"] <- as.character(tmp[, "var"])
-     colnames(tmp)[which(names(tmp) == "var")] <- names(newdata[, j,  drop=FALSE])
-     tmpCoef <- reSimA[, keep, , drop = FALSE]
+    if(j %in% names(newdata)){ # get around if names do not line up because of nesting
+      tmp <- cbind(as.data.frame(newdata.modelMatrix), var = newdata[, j])
+      tmp <- tmp[, !duplicated(colnames(tmp))]
+      keep <- names(tmp)[names(tmp) %in% dimnames(reSimA)[[2]]]
+      tmp <- tmp[, c(keep, "var"), drop = FALSE]
+      tmp[, "var"] <- as.character(tmp[, "var"])
+      colnames(tmp)[which(names(tmp) == "var")] <- names(newdata[, j,  drop=FALSE])
+    } else {
+      tmp <- as.data.frame(newdata.modelMatrix)
+      tmp <- tmp[, !duplicated(colnames(tmp))] # deduplicate columns because
+      # column names can be duplicated to account for multiple effects
+      # but we've already reconciled all the effects
+      tmp$var <- names(tmp[alllvl])[max.col(tmp[alllvl])]
+      keep <- names(tmp)[names(tmp) %in% dimnames(reSimA)[[2]]]
+      tmp <- tmp[, c(keep, "var"), drop = FALSE]
+      tmp[, "var"] <- as.character(tmp[, "var"])
+      colnames(tmp)[which(names(tmp) == "var")] <- j
+    }
      tmp.pred <- function(data, coefs, group){
-       yhatTmp <- array(data = NA, dim = c(nrow(data), ncol(data)-1, dim(coefs)[3]))
-   new.levels <- unique(as.character(data[, group])[!as.character(data[, group]) %in% dimnames(coefs)[[1]]])
+      new.levels <- unique(as.character(data[, group])[!as.character(data[, group]) %in% dimnames(coefs)[[1]]])
        msg <- paste("     The following levels of ", group, " from newdata \n -- ", paste0(new.levels, collapse=", "),
                     " -- are not in the model data. \n     Currently, predictions for these values are based only on the \n fixed coefficients and the observation-level error.", sep="")
        if(length(new.levels > 0)){
          warning(msg, call.=FALSE)
        }
-       for(k in 1:ncol(data)-1){
-         for(i in 1:nrow(data)){
-           lvl <- as.character(data[, group][i])
-           if(lvl %in% dimnames(coefs)[[1]]){
-             yhatTmp[i, k,] <- as.numeric(data[i, k]) * as.numeric(coefs[lvl, k, ])
-           } else{
-             yhatTmp[i, k,] <- as.numeric(data[i, k]) * 0
-           }
-
+       yhatTmp <- array(data = NA, dim = c(nrow(data), dim(coefs)[3]))
+       colIdx <- ncol(data) - 1
+       for(i in 1:nrow(data)){
+         lvl <- as.character(data[, group][i])
+         if(lvl %in% dimnames(coefs)[[1]]){
+           yhatTmp[i, ] <- as.numeric(data[i, 1:colIdx]) %*% coefs[lvl, 1:colIdx, ]
+         } else{
+           # 0 out the RE for these new levels
+           yhatTmp[i, ] <- rep(0, colIdx) %*% coefs[1, 1:colIdx, ]
          }
        }
        return(yhatTmp)
      }
-     re.xb[[j]] <- apply(tmp.pred(data = tmp, coefs = tmpCoef,
-                                  group = names(newdata[, j, drop=FALSE])), c(1,3), sum)
-  }
+     if(nrow(tmp) > 1000 | .parallel){
+       if(.parallel){
+         setup_parallel()
+       }
+       tmp2 <- split(tmp, (1:nrow(tmp) %/% 500)) #TODO: Find optimum splitting factor
+       tmp2 <- tmp2[lapply(tmp2,length)>0]
+       i <- seq_len(length(tmp2))
+       fe_call <- as.call(c(list(quote(foreach::foreach), i = i, .combine = 'rbind', .paropts)))
+       fe <- eval(fe_call)
+       re.xb[[j]] <- foreach::`%dopar%`(fe, tmp.pred(data = tmp2[[i]],
+                                                 coefs =reSimA[, keep, , drop = FALSE],
+                                                 group = j))
+     } else{
+       re.xb[[j]] <- tmp.pred(data = tmp, coefs = reSimA[, keep, , drop = FALSE],
+                              group = j)
+     }
 
+    }
+  rm(reSimA)
   # TODO: Add a check for new.levels that is outside of the above loop
   # for now, ignore this check
   if (include.resid.var==FALSE) {
@@ -195,9 +237,29 @@ predictInterval <- function(merMod, newdata, level = 0.95,
 
   # fixed.xb is nrow(newdata) x n.sims
   ##Calculate yhat as sum of the components (fixed plus all groupling factors)
-  # apply(reSim, c(1,2), function(x), sum(x,na.rm=TRUE))
-  betaSim <- abind::abind(lapply(1:n.sims, function(x) mvtnorm::rmvnorm(1, mean = fixef(merMod), sigma = sigmahat[x]*as.matrix(vcov(merMod)))), along=1)
+  fe.tmp <- fixef(merMod)
+  vcov.tmp <- as.matrix(vcov(merMod))
+  if(n.sims > 2000 | .parallel){
+    if(.parallel){
+      setup_parallel()
+    }
+    i <- 1:n.sims
+    fe_call <- as.call(c(list(quote(foreach::foreach), i = i,
+                              .combine = 'rbind'), .paropts))
+    fe <- eval(fe_call)
+    betaSim <- foreach::`%dopar%`(fe, mvtnorm::rmvnorm(n = 1, mean = fe.tmp,
+                                                sigma = sigmahat[[i]]*vcov.tmp,
+                                  method = "chol"))
+
+  } else {
+    betaSim <- abind::abind(lapply(1:n.sims,
+                               function(x) mvtnorm::rmvnorm(n = 1, mean = fe.tmp,
+                                                    sigma = sigmahat[x]*vcov.tmp,
+                                method = "chol")), along=1)
+  }
   # Pad betaSim
+  colnames(betaSim) <- names(fe.tmp)
+  newdata.modelMatrix <- buildModelMatrix(merMod, newdata = newdata, which = "fixed")
   if(ncol(newdata.modelMatrix) > ncol(betaSim)){
     pad <- matrix(rep(0), nrow = nrow(betaSim),
                   ncol = ncol(newdata.modelMatrix) - ncol(betaSim))
@@ -211,35 +273,36 @@ predictInterval <- function(merMod, newdata, level = 0.95,
     newdata.modelMatrix <- newdata.modelMatrix[, keep]
     betaSim <- betaSim[, keep]
   }
-
   re.xb$fixed <- newdata.modelMatrix %*% t(betaSim)
   yhat <- Reduce('+', re.xb)
   # alternative if missing data present:
   # yhat <- apply(simplify2array(re.xb), c(1,2), sum)
-
+  rm(re.xb)
+  N <- nrow(newdata)
+  outs <- data.frame("fit" = rep(NA, N),
+                     "upr" = rep(NA, N),
+                     "lwr" = rep(NA, N))
+  upCI <- 1 - ((1-level)/2)
+  loCI <- ((1-level)/2)
   if (include.resid.var==TRUE)
-    yhat <- abind::abind(lapply(1:n.sims, function(x) rnorm(nrow(newdata), yhat[,x], sigmahat[x])), along = 2)
-
+    yhat <- abind::abind(lapply(1:n.sims, function(x) rnorm(N, yhat[,x], sigmahat[x])), along = 2)
   #Output prediction intervals
   if (stat.type == "median") {
-    outs$fit <- apply(yhat,1,function(x) as.numeric(quantile(x, .5, na.rm=TRUE)))
+    outs[, 1:3] <- t(apply(yhat, 1, quantile, prob = c(0.5, upCI, loCI), na.rm=TRUE))
   }
   if (stat.type == "mean") {
-    outs$fit <- apply(yhat,1,function(x) mean(x, na.rm=TRUE))
+    outs$fit <- apply(yhat, 1, mean, na.rm=TRUE)
+    outs[, 2:3] <- t(apply(yhat, 1, quantile, prob = c(upCI, loCI), na.rm=TRUE))
   }
-  outs$upr <- apply(yhat,1,function(x) as.numeric(quantile(x, 1 - ((1-level)/2), na.rm=TRUE)))
-  outs$lwr <- apply(yhat,1,function(x) as.numeric(quantile(x, ((1-level)/2), na.rm=TRUE)))
   if (predict.type == "probability") {
-    outs$fit <- merMod@resp$family$linkinv(outs$fit)
-    outs$upr <- merMod@resp$family$linkinv(outs$upr)
-    outs$lwr <- merMod@resp$family$linkinv(outs$lwr)
+    outs <- apply(outs, 2, merMod@resp$family$linkinv)
   }
   #Close it out
   if(returnSims == FALSE){
-    yhatObj <- outs[, c("fit", "lwr", "upr")]
+    return(as.data.frame(outs))
   } else if(returnSims == TRUE){
-    yhatObj <- outs[, c("fit", "lwr", "upr")]
-    attr(yhatObj, "sim.results") <- yhat
+    outs <- as.data.frame(outs)
+    attr(outs, "sim.results") <- yhat
+    return(outs)
   }
-  return(yhatObj)
 }

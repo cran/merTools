@@ -39,12 +39,13 @@ stripAttributes <- function(data){
 #' @param type what kind of draw to make. Options include random or average
 #' @param varList a list specifying filters to subset the data by when making the
 #' draw
+#' @param seed numeric, optional argument to set seed for simulations, ignored if type="average"
 #' @return a data.frame with a single row representing the desired observation
 #' @details In cases of tie, ".", may be substituted for factors.
 #' @export draw
 #' @rdname draw
 draw <- function(object, type = c("random", "average"),
-                 varList = NULL){
+                 varList = NULL, seed = NULL){
   UseMethod("draw")
 }
 
@@ -63,10 +64,10 @@ draw <- function(object, type = c("random", "average"),
 #' draw(fm1, type = "average", varList = list("Subject" = "308"))
 #'
 draw.merMod <- function(object, type = c("random", "average"),
-                        varList = NULL){
+                        varList = NULL, seed = NULL){
   type <- match.arg(type, c("random", "average"), several.ok = FALSE)
   if(type == 'random'){
-    out <- randomObs(object, varList)
+    out <- randomObs(object, varList, seed)
     return(out)
   } else if(type == 'average'){
     out <- averageObs(object, varList)
@@ -79,14 +80,21 @@ draw.merMod <- function(object, type = c("random", "average"),
 #' @description Select a random observation from the model frame of a merMod
 #' @param merMod an object of class merMod
 #' @param varList optional, a named list of conditions to subset the data on
+#' @param seed numeric, optional argument to set seed for simulations
 #' @return a data frame with a single row for a random observation, but with full
 #' factor levels. See details for more.
 #' @details Each factor variable in the data frame has all factor levels from the
 #' full model.frame stored so that the new data is compatible with predict.merMod
-randomObs <- function(merMod, varList){
+randomObs <- function(merMod, varList, seed = NULL){
   if(!missing(varList)){
     data <- subsetList(merMod@frame, varList)
   }
+
+  if (!is.null(seed))
+    set.seed(seed)
+  else if (!exists(".Random.seed", envir = .GlobalEnv))
+    runif(1)
+
   out <- data[sample(1:nrow(data), 1),]
   chars <- !sapply(out, is.numeric)
   for(i in names(out[, chars])){
@@ -169,14 +177,19 @@ averageObs <- function(merMod, varList = NULL){
   }
   out <- collapseFrame(data)
   reTerms <- names(ngrps(merMod))
-  for(i in 1:length(reTerms)){
-    out[, reTerms[i]] <- REquantile(merMod = merMod,
-                                        quantile = 0.5, groupFctr = reTerms[[i]])
-    out[, reTerms[i]] <- as.character(out[, reTerms[i]])
+  if(any(reTerms %in% names(varList))){
+    reTerms <- reTerms[!reTerms %in% names(varList)]
+  }
+  if(length(reTerms) > 0){
+    for(i in 1:length(reTerms)){
+      out[, reTerms[i]] <- REquantile(merMod = merMod,
+                                      quantile = 0.5, groupFctr = reTerms[[i]])
+      out[, reTerms[i]] <- as.character(out[, reTerms[i]])
+    }
   }
   chars <- !sapply(out, is.numeric)
   for(i in names(out[, chars])){
-    out[, i] <- superFactor(out[, i], fullLev = unique(merMod@frame[, i]))
+    out[, i] <- try(superFactor(out[, i], fullLev = unique(merMod@frame[, i])), silent = TRUE)
   }
   out <- stripAttributes(out)
   out <- out[, names(merMod@frame)]

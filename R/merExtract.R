@@ -2,7 +2,7 @@
 #' @name REextract
 #' @description Extracts random effect terms from an lme4 model
 #' @param merMod a merMod object from the lme4 package
-#' @importFrom plyr adply rbind.fill
+#' @import plyr
 #' @return a data frame with the following columns
 #' \describe{
 #'   \item{groupFctr}{The name of the grouping factor associated with the random effects}
@@ -18,7 +18,8 @@
 #' head(rfx)
 #' @export
 REextract <- function(merMod){
-  stopifnot(class(merMod) == "lmerMod" | class(merMod) == "glmerMod")
+  stopifnot(class(merMod) %in% c("lmerMod", "glmerMod", "blmerMod",
+                                 "bglmerMod"))
   out <- lme4::ranef(merMod, condVar = TRUE)
   lvlNames <- names(out)
   reDims <- length(out)
@@ -52,6 +53,7 @@ REextract <- function(merMod){
 #' @param merMod a merMod object from the lme4 package
 #' @param n.sims number of simulations to use
 #' @param oddsRatio logical, should parameters be converted to odds ratios?
+#' @param seed numeric, optional argument to set seed for simulations
 #' @importFrom arm sim
 #' @import lme4
 #' @return a data frame with the following columns
@@ -71,8 +73,14 @@ REextract <- function(merMod){
 #' re2 <- REsim(m2, 25)
 #' head(re2)
 #' @export
-REsim <- function(merMod, n.sims = 200, oddsRatio = FALSE){
-  stopifnot(class(merMod) == "lmerMod" | class(merMod) == "glmerMod")
+REsim <- function(merMod, n.sims = 200, oddsRatio = FALSE, seed=NULL){
+  stopifnot(class(merMod) %in% c("lmerMod", "glmerMod", "blmerMod",
+                                 "bglmerMod"))
+  if (!is.null(seed))
+    set.seed(seed)
+  else if (!exists(".Random.seed", envir = .GlobalEnv))
+    runif(1)
+
   mysim <- arm::sim(merMod, n.sims = n.sims)
   reDims <- length(mysim@ranef)
   tmp.out <- vector("list", reDims)
@@ -103,6 +111,7 @@ REsim <- function(merMod, n.sims = 200, oddsRatio = FALSE){
 #' @param merMod a merMod object from the lme4 package
 #' @param n.sims number of simulations to use
 #' @param oddsRatio logical, should parameters be converted to odds ratios?
+#' @param seed numeric, optional argument to set seed for simulations
 #' @importFrom arm sim
 #' @import lme4
 #' @return a data frame with the following columns
@@ -120,8 +129,14 @@ REsim <- function(merMod, n.sims = 200, oddsRatio = FALSE){
 #' fe2 <- FEsim(m2, 25)
 #' head(fe2)
 #' @export
-FEsim <- function(merMod, n.sims = 200, oddsRatio=FALSE){
-  stopifnot(class(merMod) == "lmerMod" | class(merMod) == "glmerMod")
+FEsim <- function(merMod, n.sims = 200, oddsRatio=FALSE, seed=NULL){
+  stopifnot(class(merMod) %in% c("lmerMod", "glmerMod", "blmerMod",
+                                 "bglmerMod"))
+  if (!is.null(seed))
+    set.seed(seed)
+  else if (!exists(".Random.seed", envir = .GlobalEnv))
+    runif(1)
+
   mysim <- arm::sim(merMod, n.sims = n.sims)
   means <- apply(mysim@fixef, MARGIN = 2, mean)
   medians <- apply(mysim@fixef, MARGIN = 2, median)
@@ -153,7 +168,7 @@ FEsim <- function(merMod, n.sims = 200, oddsRatio=FALSE){
 #' RMSE.merMod(m2)
 #' @export
 RMSE.merMod <- function(merMod, scale = FALSE){
-  stopifnot(class(merMod) == "lmerMod")
+  stopifnot(class(merMod) %in% c("lmerMod", "blmerMod"))
   # Express RMSE as percentage of dependent variable standard deviation
   dvSD <- sd(merMod@frame[, 1])
   RMSE <- sqrt(mean(residuals(merMod)^2))
