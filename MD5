@@ -1,6 +1,6 @@
-fdc3a2d4761391ab5b76424a09a8c60d *DESCRIPTION
+554c63f1ddba83a3104bac80762cc41c *DESCRIPTION
 2b7afcf78da145e9b91b8e5a8a616265 *NAMESPACE
-10c02ff6e109a84b895530aa29eb83f9 *NEWS.md
+e8110f0b0a4a9cf2ed5020a823ea8e64 *NEWS.md
 3169e8510e50ed8fa0d9c28640186007 *R/helpers.R
 de1be137e714adb15221deeccfa5d356 *R/merData.R
 71ed744ab3115345540f027055022612 *R/merExpectedRank.R
@@ -15,15 +15,15 @@ b2a91cb01733cdf7a028bedd82a192df *R/merTools-package.r
 348fd99fac42a16c263b52aa752e04e3 *R/shinyMer.R
 3bfc7695889327312d725b8b30b7f60c *R/subBoot.R
 324a47d45463bd98154de4375d77ca22 *R/zzz.R
-57dc9d52f50fd0251da31995ce21afd5 *README.md
+1618a4febcdd5f696fb4805b7c751248 *README.md
 cf4d03d3827b2e6a856feb15d4b2fefa *build/vignette.rds
 e9ce80f364a542ce71cd162e057b16b9 *data/hsb.rda
 aa0ea94c45ad7c8460bf21dd6cf887ca *inst/doc/Using_predictInterval.R
 2024aed7c7ff79dd90e1d5ee6954ab00 *inst/doc/Using_predictInterval.Rmd
-5f19e426ab9cec2c209d2c4afb80d004 *inst/doc/Using_predictInterval.html
+0881516bc74c36dcb74444a16350c3fc *inst/doc/Using_predictInterval.html
 17e27d6e245c795442fa2260c7a6e640 *inst/doc/merToolsIntro.R
 d61a048bc3404cef01d8e803da3125a6 *inst/doc/merToolsIntro.Rmd
-a6c1296046364fbfe9aa358dd2aba03c *inst/doc/merToolsIntro.html
+4b7fb29f491847b4043b60257d7fef0c *inst/doc/merToolsIntro.html
 4f5c6129e5f6bd6fffbef1d32e0fc51c *inst/modelFigure.R
 555e67056f7e2c551d18c6490cfc686c *inst/shiny-apps/shinyMer/global.R
 596dc78d2adc9af2ff7100e2d02b3928 *inst/shiny-apps/shinyMer/server.r
