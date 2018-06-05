@@ -68,8 +68,8 @@ example1$service <- "1"
 predict(m1, newdata = example1)
 
 ## ------------------------------------------------------------------------
-example2 <- wiggle(example1, var = "lectage", 
-          values = c("1", "2", "3", "4", "5", "6"))
+example2 <- wiggle(example1, varlist = "lectage", 
+          valueslist = list(c("1", "2", "3", "4", "5", "6")))
 
 example2
 
@@ -88,8 +88,8 @@ example3 <- draw(m1, type = 'average')
 example3
 
 ## ------------------------------------------------------------------------
-example3 <- wiggle(example1, var = "service", 
-          values = c("0", "1"))
+example3 <- wiggle(example1, varlist = "service", 
+          valueslist = list(c("0", "1")))
 example3$yhat <- predict(m1, newdata = example3)
 
 ggplot(example3, aes(x = service, y = yhat)) + geom_line(aes(group = 1)) + 
@@ -105,9 +105,9 @@ REquantile(m1, quantile = 0.25, groupFctr = "d")
 
 ## ------------------------------------------------------------------------
 example4 <- draw(m1, type = 'average')
-example4 <- wiggle(example4, var = "s", 
-                      REquantile(m1, quantile = seq(0.1, 0.9, .1), 
-                                 groupFctr = "s"))
+example4 <- wiggle(example4, varlist = "s", 
+                      list(REquantile(m1, quantile = seq(0.1, 0.9, .1), 
+                                 groupFctr = "s")))
 
 example4$yhat <- predict(m1, newdata = example4)
 
@@ -134,9 +134,9 @@ example6$btype <- "scold"
 example6$situ <- "self"
 
 
-tempdf <- wiggle(example6, var = "Gender", c("M", "F"))
-tempdf <- wiggle(tempdf, var = "item", 
-                    unique(VerbAgg$item))
+tempdf <- wiggle(example6, varlist = "Gender", list(c("M", "F")))
+tempdf <- wiggle(tempdf, varlist = "item", 
+                    list(unique(VerbAgg$item)))
 tempdf$yhat <- predict(m2, newdata = tempdf, type = "response", 
                        allow.new.levels = TRUE)
 

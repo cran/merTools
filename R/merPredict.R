@@ -4,7 +4,7 @@
 #' distribution for the random and the fixed effects and then estimating the fitted
 #' value across that distribution, it is possible to generate a prediction interval
 #' for fitted values that includes all variation in the model except for variation
-#' in the covariance paramters, theta. This is a much faster alternative than
+#' in the covariance parameters, theta. This is a much faster alternative than
 #' bootstrapping for models fit to medium to large datasets.
 #' @param merMod a merMod object from lme4
 #' @param newdata a data.frame of new data to predict
@@ -20,6 +20,16 @@
 #' linear models
 #' @param returnSims logical, should all n.sims simulations be returned?
 #' @param seed numeric, optional argument to set seed for simulations
+#' @param fix.intercept.variance logical; should the variance of the intercept
+#' term be adjusted downwards to roughly correct for its covariance with the
+#' random effects, as if all the random effects are intercept effects?
+#' @param ignore.fixed.terms a numeric or string vector of indexes or names of
+#' fixed effects which should be considered as fully known (zero variance). This
+#' can result in under-conservative intervals, but for models with random effects
+#' nested inside fixed effects, holding the fixed effects constant intervals may
+#' give intervals with closer to nominal coverage than the over-conservative
+#' intervals without this option, which ignore negative correlation between the
+#' outer (fixed) and inner (random) coefficients.
 #' @param .parallel, logical should parallel computation be used, default is FALSE
 #' @param .paropts, -NOT USED: Caused issue #54- a list of additional options passed into the foreach function
 #' when parallel computation is enabled. This is important if (for example) your
@@ -30,14 +40,14 @@
 #' \describe{
 #'     \item{\code{fit}}{The center of the distribution of predicted values as defined by
 #'     the \code{stat} parameter.}
-#'     \item{\code{lwr}}{The lower confidence interval bound corresponding to the quantile cut
+#'     \item{\code{lwr}}{The lower prediction interval bound corresponding to the quantile cut
 #'     defined in \code{level}.}
-#'     \item{\code{upr}}{The upper confidence interval bound corresponding to the quantile cut
+#'     \item{\code{upr}}{The upper prediction interval bound corresponding to the quantile cut
 #'     defined in \code{level}.}
 #'   }
 #' If returnSims = TRUE, then the individual simulations are attached to this
 #' data.frame in the attribute \code{sim.results} and are stored as a matrix.
-#' @details To generate a prediction inteval, the function first computes a simulated
+#' @details To generate a prediction interval, the function first computes a simulated
 #' distribution of all of the parameters in the model. For the random, or grouping,
 #' effects, this is done by sampling from a multivariate normal distribution which
 #' is defined by the BLUP estimate provided by \code{ranef} and the associated
@@ -83,7 +93,10 @@ predictInterval <- function(merMod, newdata, which=c("full", "fixed", "random", 
                             n.sims = 1000, stat=c("median","mean"),
                             type=c("linear.prediction", "probability"),
                             include.resid.var=TRUE, returnSims = FALSE,
-                            seed=NULL, .parallel = FALSE, .paropts = NULL){
+                            seed=NULL, .parallel = FALSE, .paropts = NULL,
+                            fix.intercept.variance = FALSE, #This does NOT work with random slope models
+                            ignore.fixed.terms=c())
+                            {
   if(missing(newdata)){
     newdata <- merMod@frame
   }
@@ -136,7 +149,7 @@ predictInterval <- function(merMod, newdata, which=c("full", "fixed", "random", 
 
   re.xb <- vector(getME(merMod, "n_rfacs"), mode = "list")
   names(re.xb) <- names(ngrps(merMod))
-    for(j in names(re.xb)){
+  for(j in names(re.xb)){
     reMeans <- as.matrix(ranef(merMod)[[j]])
     reMatrix <- attr(ranef(merMod, condVar = TRUE)[[j]], which = "postVar")
     # OK, let's knock out all the random effects we don't need
@@ -254,6 +267,44 @@ predictInterval <- function(merMod, newdata, which=c("full", "fixed", "random", 
   ##Calculate yhat as sum of the components (fixed plus all groupling factors)
   fe.tmp <- fixef(merMod)
   vcov.tmp <- as.matrix(vcov(merMod))
+  if (fix.intercept.variance) {
+    #Assuming all random effects include intercepts.
+    intercept.variance <- vcov.tmp[1,1]
+
+    groupsizes <- ngrps(merMod)
+    for(j in names(groupsizes)){ #for every group of random e
+
+      groupExtraPrecision <- 0
+      groupVar <- (attr(VarCorr(merMod)[[j]],"stddev")["(Intercept)"])^2
+      reMatrix <- attr(ranef(merMod, condVar = TRUE)[[j]], which = "postVar")
+      for (eff in 1:dim(reMatrix)[3]) {
+        term <- 1/(reMatrix[1,1,eff] + groupVar)
+        if (term > 0) {
+            groupExtraPrecision <- groupExtraPrecision + term
+        } else {
+            warning("fix.intercept.variance got negative precision; better turn it off.")
+        }
+      }
+      intercept.variance <- intercept.variance - 1/groupExtraPrecision
+    }
+
+
+    if (intercept.variance < 0) {
+        warning("fix.intercept.variance got negative variance; better turn it off.")
+    }
+    ratio <- intercept.variance/vcov.tmp[1,1]
+    prec.tmp <- solve(vcov.tmp)
+    prec.tmp[1,1] <- prec.tmp[1,1] / ratio
+    vcov.tmp[1,] <- vcov.tmp[1,] * ratio
+    vcov.tmp <- solve(prec.tmp, tol=1e-50)
+  }
+  if (length(ignore.fixed.terms) > 0) {
+      prec.tmp <- solve(vcov.tmp)
+      for (term in ignore.fixed.terms) {
+            prec.tmp[term,term] <- prec.tmp[term,term] * 1e15
+      }
+      vcov.tmp <- solve(prec.tmp, tol=1e-50)
+  }
   if(n.sims > 2000 | .parallel){
     if(.parallel){
       setup_parallel()

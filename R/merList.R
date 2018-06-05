@@ -3,14 +3,39 @@
 #'
 #' @param object a merMod object
 #'
-#' @return Simple summary information about the object, coefficients, number
-#' of observations, and adjusted R squared
+#' @return Simple summary information about the object, number
+#' of observations, number of grouping terms, AIC, and residual standard deviation
+#' @export
+#' @examples
+#' sim_list <- replicate(n = 10,
+#'         expr = sleepstudy[sample(row.names(sleepstudy), 180),],
+#'         simplify=FALSE)
+#' fml <- "Reaction ~ Days + (Days | Subject)"
+#' mod <- lmerModList(fml, data = sim_list)
+#' modelInfo(mod[[1]])
+#' lapply(mod, modelInfo)
 modelInfo <- function(object){
-  out <- rbind(summary(object)$coefficients,
-               round(length(object$fitted.values), digits = 0),
-               round(summary(object)$adj.r.squared, digits = 5))
-  row.names(out) <- c(row.names(summary(object)$coefficients), "n.obs", "adj. rsquared")
+  ngrps <- lapply(object@flist, function(x) length(levels(x)))
+  out <- data.frame("n.obs" = getME(object, "devcomp")$dims["n"],
+                    "n.lvls" = length(ngrps),
+                    "AIC" = AIC(object),
+                    "sigma" = sigma(object))
+  row.names(out) <- NULL
+  # cat("\n---Groups\n")
+  # ngrps <- lapply(modList[[1]]@flist, function(x) length(levels(x)))
+  # modn <- getME(modList[[1]], "devcomp")$dims["n"]
+  # cat(sprintf("number of obs: %d, groups: ", modn))
+  # cat(paste(paste(names(ngrps), ngrps, sep = ", "),
+  #           collapse = "; "))
+  # cat("\n")
+  # cat("\nModel Fit Stats")
+  # mAIC <- mean(unlist(lapply(modList, AIC)))
+  # cat(sprintf("\nAIC = %g", round(mAIC, 1)))
+  # moDsigma.hat <- mean(unlist(lapply(modList, sigma)))
+  # cat("\nResidual standard deviation =", fround(moDsigma.hat,
+  #                                               digits), "\n")
   return(out)
+
 }
 
 # Functions to extract standard deviation of random effects from model
@@ -20,6 +45,9 @@ modelInfo <- function(object){
 #'
 #' @return a numeric vector for standard deviations of the random effects
 #' @export
+#' @examples
+#' fm1 <- lmer(Reaction ~ Days + (Days | Subject), sleepstudy)
+#' REsdExtract(fm1)
 REsdExtract <- function(model){
   out <- unlist(lapply(VarCorr(model), attr, "stddev"))
   return(out)
@@ -31,6 +59,9 @@ REsdExtract <- function(model){
 #'
 #' @return a numeric vector of the correlations among the effects
 #' @export
+#' @examples
+#' fm1 <- lmer(Reaction ~ Days + (Days | Subject), sleepstudy)
+#' REcorrExtract(fm1)
 REcorrExtract <- function(model){
   out <- unlist(lapply(VarCorr(model), attr, "corre"))
   return(min(unique(out)))
@@ -44,12 +75,20 @@ REcorrExtract <- function(model){
 #' @return a data.frame
 #' @import dplyr
 #' @export
+#' @examples
+#' sim_list <- replicate(n = 10,
+#'         expr = sleepstudy[sample(row.names(sleepstudy), 180),],
+#'         simplify=FALSE)
+#' fml <- "Reaction ~ Days + (Days | Subject)"
+#' mod <- lmerModList(fml, data = sim_list)
+#' modelRandEffStats(mod)
 modelRandEffStats <- function(modList){
   effList <- lapply(modList, tidy, effects = "ran_pars")
   effList <- do.call(rbind, effList)
   out <- effList %>% group_by(term, group) %>%
-    summarize(estimate = mean(estimate),
-              std.error = sd(estimate))
+    summarize(est = mean(estimate),
+              std.error = sd(estimate)) %>%
+    rename(estimate = est)
   return(as.data.frame(out))
 }
 
@@ -59,19 +98,89 @@ modelRandEffStats <- function(modList){
 #' @param ... additional arguments to pass to \code{\link{tidy}}
 #'
 #' @return a data.frame of the averaged fixed effect parameters
+#' @details The Rubin correction for combining estimates and standard errors from
+#' Rubin (1987) is applied to adjust for the within and between imputation variances.
 #' @export
 #' @importFrom broom tidy
 #' @import dplyr
+#' @examples
+#' sim_list <- replicate(n = 10,
+#'         expr = sleepstudy[sample(row.names(sleepstudy), 180),],
+#'         simplify=FALSE)
+#' fml <- "Reaction ~ Days + (Days | Subject)"
+#' mod <- lmerModList(fml, data = sim_list)
+#' modelFixedEff(mod)
 modelFixedEff <- function(modList, ...){
   fixEst <- lapply(modList, tidy, effects = "fixed", ...)
   fixEst <- do.call(rbind, fixEst)
   # Collapse
-  out <- fixEst %>% dplyr::group_by(term) %>%
-          dplyr::summarize(estimate = mean(estimate),
-               std.error = mean(std.error))
-  out$statistic <- out$estimate / out$std.error
-  return(as.data.frame(out))
+  # Rubin correction, get length of list
+  ml <- length(modList)
+  # Get between and within imputation variance, apply total correction
+  # Calculate degree of freedom correction
+  rubin <- fixEst %>% group_by(term) %>%
+    mutate(mean_est = mean(estimate)) %>%
+    mutate(est_ss = (estimate - mean_est)^2) %>%
+    summarize(estimate = mean(estimate),
+              within_var = mean(std.error), # compute within imputation variance
+              between_var =  mean(est_ss)) %>% # estimate the between imputation variance
+    mutate(std.error = within_var + ((1 + 1/ml)*between_var),
+           df = (ml-1)* (1 + within_var/((1 + 1/ml)*between_var))^2) # apply rubins total variance correction
+  # DEPRECATED method
+  # out <- fixEst %>% dplyr::group_by(term) %>%
+  #         dplyr::summarize(estimate = mean(estimate),
+  #              std.error = mean(std.error))
+  rubin$statistic <- rubin$estimate / rubin$std.error
+  rubin <- rubin %>% dplyr::select(term, estimate, std.error, statistic, df)
+  return(as.data.frame(rubin))
 }
+
+
+#' Extract fixed-effects estimates for a merModList
+#'
+#' @inheritParams lme4::fixef
+#' @return a named, numeric vector of fixed-effects estimates.
+#' @details Extract the estimates of the fixed-effects parameters from a list of
+#' fitted \code{merMod} models. Takes the mean of the individual \code{fixef}
+#' objects for each of the component models in the \code{merModList}.
+#' @export
+#' @examples
+#' sim_list <- replicate(n = 10,
+#'         expr = sleepstudy[sample(row.names(sleepstudy), 180),],
+#'         simplify=FALSE)
+#' fml <- "Reaction ~ Days + (Days | Subject)"
+#' mod <- lmerModList(fml, data = sim_list)
+#' fixef(mod)
+fixef.merModList <- function(object, add.dropped = FALSE, ...){
+  Reduce(`+`, lapply(object, fixef)) / length(object)
+}
+
+#' Extract random-effects estimates for a merModList
+#'
+#' @inheritParams lme4::ranef
+#' @return a named, numeric vector of random-effects estimates.
+#' @details Extract the estimates of the random-effects parameters from a list of
+#' fitted \code{merMod} models. Takes the mean of the individual \code{ranef}
+#' objects for each of the component models in the \code{merModList}.
+#' @export
+#' @examples
+#' sim_list <- replicate(n = 10,
+#'         expr = sleepstudy[sample(row.names(sleepstudy), 180),],
+#'         simplify=FALSE)
+#' fml <- "Reaction ~ Days + (Days | Subject)"
+#' mod <- lmerModList(fml, data = sim_list)
+#' ranef(mod)
+ranef.merModList <- function(object, ...){
+  levels <- getME(object[[1]], "n_rfacs")
+  re <- vector(length = levels, mode = "list")
+  for(i in seq_along(1:levels)){
+    # <- Reduce(`+`, lapply(object, ranef)[i]) / length(object)
+  re[i]  <- lapply(Reduce(`+`, lapply(object, ranef)[1]), function(x) x/length(object))
+  }
+  names(re) <- names(ranef(object[[1]]))
+  return(re)
+}
+
 
 #' Extract the variances and correlations for random effects from a merMod list
 #' @inheritParams lme4::VarCorr
@@ -80,6 +189,13 @@ modelFixedEff <- function(modList, ...){
 #' deviations and correlations averaged across models in the list
 #' @export
 #' @import lme4
+#' @examples
+#' sim_list <- replicate(n = 10,
+#'         expr = sleepstudy[sample(row.names(sleepstudy), 180),],
+#'         simplify=FALSE)
+#' fml <- "Reaction ~ Days + (Days | Subject)"
+#' mod <- lmerModList(fml, data = sim_list)
+#' VarCorr(mod)
 VarCorr.merModList <- function(x, sigma = 1, rdig = 3L){
   modList <- x
   ngrps <- length(VarCorr(modList[[1]]))
@@ -123,6 +239,13 @@ utils::globalVariables(c("term", "estimate","std.error"))
 #'
 #' @return summary content printed to console
 #' @export
+#' @examples
+#' sim_list <- replicate(n = 10,
+#'         expr = sleepstudy[sample(row.names(sleepstudy), 180),],
+#'         simplify=FALSE)
+#' fml <- "Reaction ~ Days + (Days | Subject)"
+#' mod <- lmerModList(fml, data = sim_list)
+#' print(mod)
 print.merModList <- function(x, ...){
   modList <- x
   args <- eval(substitute(alist(...)))
@@ -188,6 +311,36 @@ print.merModList <- function(x, ...){
                                                 digits), "\n")
 }
 
+#' Summarize a merMod list
+#'
+#' @param object a modList of class merModList
+#' @param ... additional arguments
+#'
+#' @return a summary object of model information
+#' @export
+#' @examples
+#' sim_list <- replicate(n = 10,
+#'         expr = sleepstudy[sample(row.names(sleepstudy), 180),],
+#'         simplify=FALSE)
+#' fml <- "Reaction ~ Days + (Days | Subject)"
+#' mod <- lmerModList(fml, data = sim_list)
+#' summary(mod)
+summary.merModList <- function(object, ...){
+  out <- lapply(object, sum.mm)
+  class(out) <- "summary.merModList"
+  return(out)
+}
+
+#' Print the summary of a merMod list
+#'
+#' @param x a summary of amerModList object
+#' @param ... additional arguments
+#'
+#' @return summary content printed to console
+#' @export
+print.summary.merModList <- function(x, ...){
+  lapply(x, print)
+}
 
 #' Apply a multilevel model to a list of data frames
 #'
@@ -199,6 +352,13 @@ print.merModList <- function(x, ...){
 #'
 #' @return a list of fitted merMod objects of class merModList
 #' @export
+#' @examples
+#' sim_list <- replicate(n = 10,
+#'         expr = sleepstudy[sample(row.names(sleepstudy), 180),],
+#'         simplify=FALSE)
+#' fml <- "Reaction ~ Days + (Days | Subject)"
+#' mod <- lmerModList(fml, data = sim_list)
+#' summary(mod)
 lmerModList <- function(formula, data, parallel = NULL, ...){
   ml <- lapply(data, function(d) lmer(formula, data = d, ...))
   class(ml) <- "merModList"

@@ -751,4 +751,14 @@ test_that("Nested effects can work", {
   expect_equal(mean(predInt1[,3] - predInt2[,3]), 0, tol = sd(predInt1[,3])/20)
 })
 
+test_that("Corrections reduce predicted intervals", {
+  skip_on_cran()
+  fatmodel <- lmer(Reaction ~ Days + (1 | Subject), sleepstudy)
+  bigInterval <- suppressWarnings(predictInterval(fatmodel, sleepstudy[1,], include.resid.var=0))
+  medInterval <- suppressWarnings(predictInterval(fatmodel, sleepstudy[1,], include.resid.var=0, fix.intercept.variance = T))
+  smInterval <- suppressWarnings(predictInterval(fatmodel, sleepstudy[1,], include.resid.var=0, ignore.fixed.terms = 1))
 
+  expect_true(bigInterval[1,c(2)] - bigInterval[1,c(3)] > medInterval[1,c(2)] - medInterval[1,c(3)])
+  expect_true(medInterval[1,c(2)] - medInterval[1,c(3)] > smInterval[1,c(2)] - smInterval[1,c(3)])
+  expect_true(smInterval[1,c(2)] - smInterval[1,c(3)] > 0)
+})

@@ -1,6 +1,41 @@
 # NEWS
 
+## merTools 0.4.1
 
+### New Features
+- Standard errors reported by `merModList` functions now apply the Rubin 
+correction for multiple imputation
+
+### Bug fixes
+- Contribution by Alex Whitworth (@alexWhitworth) adding error checking to plotting
+functions
+- The vignettes have been shortened and unit tests reorganized to facilitate 
+Travis-CI builds and reduce CRAN build burden
+
+## merTools 0.4.0
+
+### New Features
+- Added vignette on using multilevel models with multiply imputed data
+- Added `fixef` and `ranef` generics for `merModList` objects
+- Added `fastdisp` generic for `merModList`
+- Added `summary` generic for `merModList`
+- Added `print` generic for `merModList`
+- Documented all generics for `merModList` including examples and a new 
+imputation vignette
+- Added `modelInfo` generic for `merMod` objects that provides simple summary 
+stats about a whole model
+
+### Bug Fixes
+- Fix bug that returned NaN for `std.error` of a multiply imputed `merModList` 
+when calling `modelRandEffStats`
+- Fixed bug in `REimpact` where some column names in `newdata` would prevent the 
+prediction intervals from being computed correctly. Users will now be warned.
+- Fixed bug in `wiggle` where documentation incorrectly stated the arguments to 
+the function and the documentation did not describe function correctly
+
+## merTools 0.3.1
+
+- Update the `readme.rmd` to package graphics with the R package, per CRAN
 
 ## merTools 0.3.0
 
@@ -81,7 +116,7 @@ need
 
 ### Future changes
 - For the next release (1.0) we are considering a permanent switch to 
-C++ RMVN sampler courtesy of Giri Gopalan 's excellent [FastGP](http://www.github.com/ggopalan/FastGP) package
+C++ RMVN sampler courtesy of Giri Gopalan 's excellent FastGP
 
 
 
