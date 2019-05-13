@@ -7,6 +7,8 @@ knitr::opts_chunk$set(
   echo = TRUE
 )
 
+rstanarm_eval <- "rstanarm" %in% rownames(installed.packages())
+
 ## ----Prep, message=FALSE, warning=FALSE----------------------------------
 set.seed(271828)
 data(sleepstudy)
@@ -151,7 +153,7 @@ ggplot(aes(x=x, y=fit, ymin=lwr, ymax=upr, color=Predict.Method), data=comp.data
 
 
 
-## ----echo=FALSE, message=FALSE-------------------------------------------
+## ----echo=FALSE, message=FALSE, eval = rstanarm_eval---------------------
 library(rstanarm)
 
 central_intervals <- function(x, prob) {
@@ -166,7 +168,7 @@ central_intervals <- function(x, prob) {
 }
 
 
-## ---- message=FALSE, fig.width=7, fig.height=4, fig.align="center"-------
+## ---- message=FALSE, fig.width=7, fig.height=4, fig.align="center", eval = rstanarm_eval----
 PI.time.stan <- system.time({
   fm_stan <- stan_lmer(Reaction ~ Days + (Days|Subject), data = sleepstudy,
                        verbose = FALSE, open_progress = FALSE, refresh = -1,
@@ -193,8 +195,40 @@ ggplot(aes(x=x, y=fit, ymin=lwr, ymax=upr, color=Predict.Method), data=comp.data
 
 
 ## ---- echo=FALSE---------------------------------------------------------
-times <- rbind(PI.time, PI.arm.time, PI.boot1.time, PI.boot2.time, PI.boot3.time,
-               PI.time.stan)[, 1:3]
-rownames(times) <- c("predictInterval()", "arm::sim()", "lme4::bootMer()-Method 1", "lme4::bootMer()-Method 2", "lme4::bootMer()-Method 3", "rstanarm:predict")
-kable(times)
+if (rstanarm_eval) {
+  times <-
+    rbind(PI.time,
+    PI.arm.time,
+    PI.boot1.time,
+    PI.boot2.time,
+    PI.boot3.time,
+    PI.time.stan)[, 1:3]
+    rownames(times) <-
+    c(
+    "predictInterval()",
+    "arm::sim()",
+    "lme4::bootMer()-Method 1",
+    "lme4::bootMer()-Method 2",
+    "lme4::bootMer()-Method 3",
+    "rstanarm:predict"
+    )
+    kable(times)
+} else { 
+  times <-
+    rbind(PI.time,
+    PI.arm.time,
+    PI.boot1.time,
+    PI.boot2.time,
+    PI.boot3.time)[, 1:3]
+    rownames(times) <-
+    c(
+    "predictInterval()",
+    "arm::sim()",
+    "lme4::bootMer()-Method 1",
+    "lme4::bootMer()-Method 2",
+    "lme4::bootMer()-Method 3"
+    )
+    kable(times)
+  }
+
 

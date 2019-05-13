@@ -3,6 +3,11 @@
 #Do merModList objects get built and work----
 context("Do merModList objects get built and work")
 
+old_warn <- getOption("warn")
+options(warn = -1)
+
+set.seed(432422)
+
 test_that("simple cases work", {
   # skip_on_cran()
   library(blme)
@@ -15,9 +20,12 @@ test_that("simple cases work", {
                                  sigma = c(.23)))[[1]]
   out <- split(d, split)
   rm(split)
-  g1 <- lmerModList(formula = y~fac1+(1|grp), data=out)
+  # TODO change tolerances
+  g1 <- lmerModList(formula = y~fac1+(1|grp), data=out,
+                    control= lmerControl(check.conv.grad = .makeCC("warning", tol= 2e-3)))
   expect_is(g1, "merModList")
-  g2 <- blmerModList(formula = y~fac1+(1|grp), data=out)
+  g2 <- blmerModList(formula = y~fac1+(1|grp), data=out,
+                     control= lmerControl(check.conv.grad = .makeCC("warning", tol= 2e-3)))
   expect_is(g2, "merModList")
   expect_false(class(g1[[1]]) == class(g2[[1]]))
 
@@ -25,7 +33,8 @@ test_that("simple cases work", {
   out <- split(InstEval, split)
   rm(split)
   g1 <- lmerModList(formula = y ~ lectage + studage + (1|d) + (1|dept),
-                    data=out)
+                    data=out,
+                    control= lmerControl(check.conv.grad = .makeCC("warning", tol = 1e-2)))
   expect_is(g1, "merModList")
 
 })
@@ -41,10 +50,13 @@ test_that("print methods work for merModList", {
                                  sigma = c(.23)))[[1]]
   out <- split(d, split)
   rm(split);
-  g1 <- lmerModList(formula = y~fac1+(1|grp), data=out);
+  g1 <- lmerModList(formula = y~fac1+(1|grp), data=out,
+                    control= lmerControl(check.conv.grad = .makeCC("warning", tol= 1e-2)));
   {sink("NUL"); zz <- print(g1);
     sink()}
-  expect_null(zz)
+  expect_is(zz, "list")
+  zz <- summary(g1)
+  expect_is(zz, "summary.merModList")
 
 })
 
@@ -67,10 +79,12 @@ test_that("print method for merModList works in general case", {
   g1 <- glmerModList(formula = form,
                     data = modDat, family = "binomial",
                     control = glmerControl(optimizer="bobyqa",
-                                           optCtrl=list(maxfun = 1e6)))
+                                           optCtrl=list(maxfun = 1e6),
+                                           check.conv.grad = .makeCC("warning", tol= 1e-2)))
   g1T <- glmer(form, family = "binomial", data = grouseticks,
                control = glmerControl(optimizer="bobyqa",
-                                      optCtrl=list(maxfun = 1e6)))
+                                      optCtrl=list(maxfun = 1e6),
+                                      check.conv.grad = .makeCC("warning", tol= 1e-2)))
 
   expect_equal(VarCorr(g1)$stddev$BROOD, attr(VarCorr(g1T)$BROOD, "stddev"),
                tolerance = 0.0001)
@@ -85,10 +99,12 @@ test_that("print method for merModList works in general case", {
   g1 <- glmerModList(formula = form,
                      data = modDat, family = "binomial",
                      control = glmerControl(optimizer="bobyqa",
-                                            optCtrl=list(maxfun = 1e6)))
+                                            optCtrl=list(maxfun = 1e6),
+                                            check.conv.grad = .makeCC("warning", tol= 1e-2)))
   g1T <- glmer(form, family = "binomial", data = grouseticks,
                control = glmerControl(optimizer="bobyqa",
-                                      optCtrl=list(maxfun = 1e6)))
+                                      optCtrl=list(maxfun = 1e6),
+                                      check.conv.grad = .makeCC("warning", tol= 1e-2)))
 
   expect_equal(VarCorr(g1)$stddev$BROOD, attr(VarCorr(g1T)$BROOD, "stddev"),
                tolerance = 0.0001)
@@ -109,3 +125,5 @@ test_that("ICC function works", {
   expect_is(ICC1, "numeric")
   expect_equal(ICC1, 0.3948896, tol = .001)
 })
+
+options(warn= old_warn)

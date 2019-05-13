@@ -74,6 +74,8 @@
 #' @import lme4
 #' @importFrom abind abind
 #' @importFrom mvtnorm rmvnorm
+#' @importFrom foreach %dopar%
+#' @importFrom foreach foreach
 #' @examples
 #' m1 <- lmer(Reaction ~ Days + (1 | Subject), sleepstudy)
 #' regFit <- predict(m1, newdata = sleepstudy[11, ]) # a single value is returned
@@ -95,7 +97,7 @@ predictInterval <- function(merMod, newdata, which=c("full", "fixed", "random", 
                             include.resid.var=TRUE, returnSims = FALSE,
                             seed=NULL, .parallel = FALSE, .paropts = NULL,
                             fix.intercept.variance = FALSE, #This does NOT work with random slope models
-                            ignore.fixed.terms=c())
+                            ignore.fixed.terms = NULL)
                             {
   if(missing(newdata)){
     newdata <- merMod@frame
@@ -145,15 +147,18 @@ predictInterval <- function(merMod, newdata, which=c("full", "fixed", "random", 
     warning("   Prediction for NLMMs or GLMMs that are not mixed binomial regressions is not tested. Sigma set at 1.")
     sigmahat <- rep(1,n.sims)
   }
+
   newdata.modelMatrix <- buildModelMatrix(model= merMod, newdata = newdata)
+  # When there is no fixed effect intercept but there is a group level intercept
+  # We need to do something!
 
   re.xb <- vector(getME(merMod, "n_rfacs"), mode = "list")
   names(re.xb) <- names(ngrps(merMod))
-  for(j in names(re.xb)){
+  for (j in names(re.xb)){
     reMeans <- as.matrix(ranef(merMod)[[j]])
     reMatrix <- attr(ranef(merMod, condVar = TRUE)[[j]], which = "postVar")
     # OK, let's knock out all the random effects we don't need
-    if(j %in% names(newdata)){ # get around if names do not line up because of nesting
+    if (j %in% names(newdata)){ # get around if names do not line up because of nesting
       obslvl <- unique(as.character(newdata[, j]))
       alllvl <- rownames(reMeans)
       keep <- intersect(obslvl, alllvl)
@@ -165,37 +170,62 @@ predictInterval <- function(merMod, newdata, which=c("full", "fixed", "random", 
     # Add switch if no random groups are observed to avoid indexing errors,
     # we burn 1 sample of 1 group of all coefficients that will eventually
     # be multiplied by zero later on
-    if(length(keep) > 0 & !identical(keep, alllvl)){
+    if (length(keep) > 0 & !identical(keep, alllvl)) {
       reMeans <- reMeans[keep, , drop=FALSE]
       dimnames(reMatrix)[[3]] <- alllvl
       reMatrix <- reMatrix[, , keep, drop = FALSE]
-    } else if(length(keep) > 0 & identical(keep, alllvl)){
+    } else if (length(keep) > 0 & identical(keep, alllvl)){
       dimnames(reMatrix)[[3]] <- alllvl
+      # dimnames(reMeans)[[2]] <- j  # we need to get the variable name into this ojbect
+      reMatrix <- reMatrix[, , keep, drop = FALSE]
     } else{
       reMeans <- reMeans[1, , drop=FALSE]
       reMatrix <- reMatrix[, , 1, drop = FALSE]
     }
 
     tmpList <- vector(length = nrow(reMeans), mode = "list")
-    for(k in 1:nrow(reMeans)){
+    for (k in 1:nrow(reMeans)){
       meanTmp <- reMeans[k, ]
+      names(meanTmp) <- NULL
       matrixTmp <- as.matrix(reMatrix[, , k])
       tmpList[[k]] <- as.matrix(mvtnorm::rmvnorm(n= n.sims,
                                                 mean=meanTmp,
                                                 sigma=matrixTmp, method = "chol"))
     }
 
-    REcoefs <- sapply(tmpList, identity, simplify="array"); rm(tmpList)
-    dimnames(REcoefs) <- list(NULL,
+    REcoefs <- sapply(tmpList, identity, simplify="array")
+    # rm(tmpList)
+    dimnames(REcoefs) <- list(1:n.sims,
                             attr(reMeans, "dimnames")[[2]],
-                            attr(reMeans, "dimnames")[[1]])
-    if(j %in% names(newdata)){ # get around if names do not line up because of nesting
+                            attr(reMeans, "dimnames")[[1]]
+                            )
+    if (j %in% names(newdata)) { # get around if names do not line up because of nesting
       tmp <- cbind(as.data.frame(newdata.modelMatrix), var = newdata[, j])
       tmp <- tmp[, !duplicated(colnames(tmp))]
       keep <- names(tmp)[names(tmp) %in% dimnames(REcoefs)[[2]]]
+      if (length(keep) == 0) {
+        keep <- grep(dimnames(REcoefs)[[2]], names(tmp), value = TRUE)
+      }
+        if (length(keep) == 0) {
+          tmp <- cbind(model.frame(subbars(formula(merMod)), data = newdata),
+                       var = newdata[, j])
+          keep <- grep(dimnames(REcoefs)[[2]], names(tmp), value = TRUE)
+        }
+          if ( length(keep) == 0) {
+            # Add in an intercept for RE purposes
+            tmp <- cbind(as.data.frame(newdata.modelMatrix), var = newdata[, j])
+            tmp <- tmp[, !duplicated(colnames(tmp))]
+            tmp <- cbind(data.frame(1), tmp)
+            names(tmp)[1] <- "(Intercept)"
+            keep <- "(Intercept)"
+          }
       tmp <- tmp[, c(keep, "var"), drop = FALSE]
       tmp[, "var"] <- as.character(tmp[, "var"])
-      colnames(tmp)[which(names(tmp) == "var")] <- names(newdata[, j,  drop=FALSE])
+      colnames(tmp)[which(names(tmp) == "var")] <- names(newdata[, j,  drop = FALSE])
+      if (all(grepl(":", keep))) {
+        # Strip out the interaction after
+        keep <- unique(gsub("(.*):.*", "\\1", keep))
+      }
     } else {
       tmp <- as.data.frame(newdata.modelMatrix)
       tmp <- tmp[, !duplicated(colnames(tmp))] # deduplicate columns because
@@ -210,6 +240,8 @@ predictInterval <- function(merMod, newdata, which=c("full", "fixed", "random", 
       tmp[, "var"] <- as.character(tmp[, "var"])
       colnames(tmp)[which(names(tmp) == "var")] <- j
     }
+    #######################
+    ################
      tmp.pred <- function(data, coefs, group){
       new.levels <- unique(as.character(data[, group])[!as.character(data[, group]) %in% dimnames(coefs)[[3]]])
        msg <- paste("     The following levels of ", group, " from newdata \n -- ", paste0(new.levels, collapse=", "),
@@ -219,8 +251,23 @@ predictInterval <- function(merMod, newdata, which=c("full", "fixed", "random", 
        }
        yhatTmp <- array(data = NA, dim = c(nrow(data), dim(coefs)[1]))
        colIdx <- ncol(data) - 1
+
+      colLL <- length(1:colIdx)
+      if(colLL > dim(coefs)[2]) {
+        # copy over
+        coefs_new <- array(NA, dim = c(dim(coefs)[1], colLL,
+                                       dim(coefs)[3]))
+        dimnames(coefs_new)[c(1, 3)] <- dimnames(coefs)[c(1, 3)]
+
+        dimnames(coefs_new)[[2]] <- rep(dimnames(coefs)[[2]], dim(coefs_new)[2])
+        for (k in 1:colLL) {
+          coefs_new[, k, 1:dim(coefs)[3]] <- coefs[, 1, 1:dim(coefs)[3]]
+        }
+        coefs <- coefs_new
+      }
+
       for(i in 1:nrow(data)){
-         lvl <- as.character(data[, group][i])
+        lvl <- as.character(data[, group][i])
          if(!lvl %in% new.levels){
            yhatTmp[i, ] <- as.numeric(data[i, 1:colIdx]) %*% t(coefs[, 1:colIdx, lvl])
          } else{
@@ -232,8 +279,11 @@ predictInterval <- function(merMod, newdata, which=c("full", "fixed", "random", 
        rm(data)
        return(yhatTmp)
      }
-     if(nrow(tmp) > 1000 | .parallel){
-       if(.parallel){
+    #########################
+    ####
+     if(nrow(tmp) > 1000 | .parallel) {
+       if (requireNamespace("foreach", quietly=TRUE)) {
+         if(.parallel){
          setup_parallel()
        }
        tmp2 <- split(tmp, (1:nrow(tmp) %/% 500)) #TODO: Find optimum splitting factor
@@ -245,6 +295,11 @@ predictInterval <- function(merMod, newdata, which=c("full", "fixed", "random", 
                                                  coefs = REcoefs[, keep, , drop = FALSE],
                                                  group = j))
        rm(tmp2)
+       } else {
+         warning("foreach package is unavailable, parallel computing not available")
+         re.xb[[j]] <- tmp.pred(data = tmp, coefs = REcoefs[, keep, , drop = FALSE],
+                                group = j)
+       }
      } else{
        re.xb[[j]] <- tmp.pred(data = tmp, coefs = REcoefs[, keep, , drop = FALSE],
                               group = j)
@@ -256,7 +311,7 @@ predictInterval <- function(merMod, newdata, which=c("full", "fixed", "random", 
   # for now, ignore this check
   if (include.resid.var==FALSE) {
 #     if (length(new.levels)==0)
-      sigmahat <- rep(1,n.sims)
+      sigmahat <- rep(1, n.sims)
 #     else {
 #       include.resid.var=TRUE
 #       warning("    \n  Since new levels were detected resetting include.resid.var to TRUE.")
@@ -267,6 +322,19 @@ predictInterval <- function(merMod, newdata, which=c("full", "fixed", "random", 
   ##Calculate yhat as sum of the components (fixed plus all groupling factors)
   fe.tmp <- fixef(merMod)
   vcov.tmp <- as.matrix(vcov(merMod))
+
+  # Detect if an intercept is present
+  # TODO - is this reliable
+  if (is.na(names(attr(VarCorr(merMod)[[j]],"stddev")["(Intercept)"]))) {
+    fix.intercept.variance <- FALSE
+    message("No intercept detected, setting fix.intercept.variance to FALSE")
+  }
+  # If intercept is not in fixed terms
+  if (!"(Intercept)" %in% names(fixef(merMod)) && fix.intercept.variance) {
+    # TODO - decide if this is an error or if we should allow it to continue with warning
+    warning("No fixed-effect intercept detected. Variance adjustment may be unreliable.")
+  }
+
   if (fix.intercept.variance) {
     #Assuming all random effects include intercepts.
     intercept.variance <- vcov.tmp[1,1]
@@ -298,7 +366,7 @@ predictInterval <- function(merMod, newdata, which=c("full", "fixed", "random", 
     vcov.tmp[1,] <- vcov.tmp[1,] * ratio
     vcov.tmp <- solve(prec.tmp, tol=1e-50)
   }
-  if (length(ignore.fixed.terms) > 0) {
+  if (!is.null(ignore.fixed.terms)) {
       prec.tmp <- solve(vcov.tmp)
       for (term in ignore.fixed.terms) {
             prec.tmp[term,term] <- prec.tmp[term,term] * 1e15
@@ -325,8 +393,9 @@ predictInterval <- function(merMod, newdata, which=c("full", "fixed", "random", 
   }
   # Pad betaSim
   colnames(betaSim) <- names(fe.tmp)
+  rownames(betaSim) <- 1:n.sims
   newdata.modelMatrix <- buildModelMatrix(merMod, newdata = newdata, which = "fixed")
-  if(ncol(newdata.modelMatrix) > ncol(betaSim)){
+  if (ncol(newdata.modelMatrix) > ncol(betaSim)) {
     pad <- matrix(rep(0), nrow = nrow(betaSim),
                   ncol = ncol(newdata.modelMatrix) - ncol(betaSim))
     if(ncol(pad) > 0){
@@ -381,7 +450,12 @@ predictInterval <- function(merMod, newdata, which=c("full", "fixed", "random", 
                            na.rm=TRUE))
   }
   if (predict.type == "probability") {
-    outs <- apply(outs, 2, merMod@resp$family$linkinv)
+    if(nrow(outs) == 1) {
+      outs <- t(apply(outs, 2, merMod@resp$family$linkinv))
+    } else {
+      outs <- apply(outs, 2, merMod@resp$family$linkinv)
+    }
+
   }
 
   ##############################

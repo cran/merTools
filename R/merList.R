@@ -21,21 +21,7 @@ modelInfo <- function(object){
                     "AIC" = AIC(object),
                     "sigma" = sigma(object))
   row.names(out) <- NULL
-  # cat("\n---Groups\n")
-  # ngrps <- lapply(modList[[1]]@flist, function(x) length(levels(x)))
-  # modn <- getME(modList[[1]], "devcomp")$dims["n"]
-  # cat(sprintf("number of obs: %d, groups: ", modn))
-  # cat(paste(paste(names(ngrps), ngrps, sep = ", "),
-  #           collapse = "; "))
-  # cat("\n")
-  # cat("\nModel Fit Stats")
-  # mAIC <- mean(unlist(lapply(modList, AIC)))
-  # cat(sprintf("\nAIC = %g", round(mAIC, 1)))
-  # moDsigma.hat <- mean(unlist(lapply(modList, sigma)))
-  # cat("\nResidual standard deviation =", fround(moDsigma.hat,
-  #                                               digits), "\n")
   return(out)
-
 }
 
 # Functions to extract standard deviation of random effects from model
@@ -126,6 +112,10 @@ modelFixedEff <- function(modList, ...){
               between_var =  mean(est_ss)) %>% # estimate the between imputation variance
     mutate(std.error = within_var + ((1 + 1/ml)*between_var),
            df = (ml-1)* (1 + within_var/((1 + 1/ml)*between_var))^2) # apply rubins total variance correction
+  # add fallback
+  if (any((((1 + 1/ml)*rubin$between_var)^2) < 0.000000001)) {
+    warning("Between imputation variance is very small, are imputation sets too similar?")
+  }
   # DEPRECATED method
   # out <- fixEst %>% dplyr::group_by(term) %>%
   #         dplyr::summarize(estimate = mean(estimate),
@@ -234,7 +224,7 @@ VarCorr.merModList <- function(x, sigma = 1, rdig = 3L){
 utils::globalVariables(c("term", "estimate","std.error"))
 #' Print the results of a merMod list
 #'
-#' @param x a modList of class merModList
+#' @param object a modList of class merModList
 #' @param ... additional arguments
 #'
 #' @return summary content printed to console
@@ -246,74 +236,39 @@ utils::globalVariables(c("term", "estimate","std.error"))
 #' fml <- "Reaction ~ Days + (Days | Subject)"
 #' mod <- lmerModList(fml, data = sim_list)
 #' print(mod)
-print.merModList <- function(x, ...){
-  modList <- x
+summary.merModList <- function(object, ...){
+  modList <- object
   args <- eval(substitute(alist(...)))
   if("digits" %in% names(args)){
     digits <- args$digits
   } else{
     digits <- 3
   }
-  len <- length(modList)
-  form <- modList[[1]]@call
-  print(summary(modList[[1]])$methTitle)
-  cat("Model family: ", summary(modList[[1]])$family)
-  cat("\n")
-  print(form)
-  cat("\nFixed Effects:\n")
-  fedat <- modelFixedEff(modList)
-  dimnames(fedat)[[1]] <- fedat$term
-  pfround(fedat[, -1], digits)
-  cat("\nRandom Effects:\n")
-  ngrps <- length(VarCorr(modList[[1]]))
-  errorList <- VarCorr(modList)$stddev
-  corrList <- VarCorr(modList)$correlation
+  summ.ml <- list()
+  summ.ml$len <- length(modList)
+  summ.ml$form <- modList[[1]]@call
+  summ.ml$method <- summary(modList[[1]])$methTitle
+  summ.ml$family <- summary(modList[[1]])$family
+  summ.ml$fe <- modelFixedEff(modList)
+  dimnames(summ.ml$fe)[[1]] <- summ.ml$fe$term
+  # pfround(summ.ml$fe[, -1], digits)
+  summ.ml$ngrps <- length(VarCorr(modList[[1]]))
+  summ.ml$errorList <- VarCorr(modList)$stddev
+  summ.ml$corrList <- VarCorr(modList)$correlation
 
-  cat("\nError Term Standard Deviations by Level:\n")
-  for(i in 1:length(errorList)){
-    cat("\n")
-    cat(names(errorList[i]))
-    cat("\n")
-    if(is.null(names(errorList[[i]]))){
-      names(errorList[[i]]) <- "(Intercept)"
-    }
-    pfround(errorList[[i]], digits = digits)
-    cat("\n")
-  }
   # lapply(errorList, pfround, digits)
-  cat("\nError Term Correlations:\n")
-  for(i in 1:length(corrList)){
-    cat("\n")
-    cat(names(corrList[i]))
-    cat("\n")
-    if(is.null(names(corrList[[i]]))){
-      names(corrList[[i]]) <- "(Intercept)"
-    }
-    pfround(corrList[[i]], digits = digits)
-    cat("\n")
-  }
-  # lapply(corrList, pfround, digits)
-  residError <- mean(unlist(lapply(modList, function(x) attr(VarCorr(x), "sc"))))
-  cat("\nResidual Error =", fround(residError,
-                                   digits), "\n")
-  cat("\n---Groups\n")
-  ngrps <- lapply(modList[[1]]@flist, function(x) length(levels(x)))
-  modn <- getME(modList[[1]], "devcomp")$dims["n"]
-  cat(sprintf("number of obs: %d, groups: ", modn))
-  cat(paste(paste(names(ngrps), ngrps, sep = ", "),
-            collapse = "; "))
-  cat("\n")
-  cat("\nModel Fit Stats")
-  mAIC <- mean(unlist(lapply(modList, AIC)))
-  cat(sprintf("\nAIC = %g", round(mAIC, 1)))
-  moDsigma.hat <- mean(unlist(lapply(modList, sigma)))
-  cat("\nResidual standard deviation =", fround(moDsigma.hat,
-                                                digits), "\n")
+  summ.ml$residError <- mean(unlist(lapply(modList, function(x) attr(VarCorr(x), "sc"))))
+  summ.ml$ngrps <- lapply(modList[[1]]@flist, function(x) length(levels(x)))
+  summ.ml$modn <- getME(modList[[1]], "devcomp")$dims["n"]
+  summ.ml$mAIC <- mean(unlist(lapply(modList, AIC)))
+  summ.ml$moDsigma.hat <- mean(unlist(lapply(modList, sigma)))
+  class(summ.ml) <- "summary.merModList"
+  return(summ.ml)
 }
 
 #' Summarize a merMod list
 #'
-#' @param object a modList of class merModList
+#' @param x a modList of class merModList
 #' @param ... additional arguments
 #'
 #' @return a summary object of model information
@@ -325,9 +280,9 @@ print.merModList <- function(x, ...){
 #' fml <- "Reaction ~ Days + (Days | Subject)"
 #' mod <- lmerModList(fml, data = sim_list)
 #' summary(mod)
-summary.merModList <- function(object, ...){
-  out <- lapply(object, sum.mm)
-  class(out) <- "summary.merModList"
+print.merModList <- function(x, ...){
+  out <- lapply(x, sum.mm)
+  # class(out) <- "summary.merModList"
   return(out)
 }
 
@@ -339,16 +294,72 @@ summary.merModList <- function(object, ...){
 #' @return summary content printed to console
 #' @export
 print.summary.merModList <- function(x, ...){
-  lapply(x, print)
+  summ.ml <- x
+  args <- eval(substitute(alist(...)))
+  if("digits" %in% names(args)){
+    digits <- args$digits
+  } else{
+    digits <- 3
+  }
+  print(summ.ml$method)
+  cat("Model family: ", summ.ml$family)
+  cat("\n")
+  print(summ.ml$form)
+  cat("\nFixed Effects:\n")
+  pfround(summ.ml$fe[, -1], digits)
+  cat("\nRandom Effects:\n")
+  cat("\nError Term Standard Deviations by Level:\n")
+  for(i in 1:length(summ.ml$errorList)){
+    cat("\n")
+    cat(names(summ.ml$errorList[i]))
+    cat("\n")
+    if(is.null(names(summ.ml$errorList[[i]]))){
+      names(summ.ml$errorList[[i]]) <- "(Intercept)"
+    }
+    pfround(summ.ml$errorList[[i]], digits = digits)
+    cat("\n")
+  }
+  # lapply(errorList, pfround, digits)
+  cat("\nError Term Correlations:\n")
+  for(i in 1:length(summ.ml$corrList)){
+    cat("\n")
+    cat(names(summ.ml$corrList[i]))
+    cat("\n")
+    if(is.null(names(summ.ml$corrList[[i]]))){
+      names(summ.ml$corrList[[i]]) <- "(Intercept)"
+    }
+    pfround(summ.ml$corrList[[i]], digits = digits)
+    cat("\n")
+  }
+  # lapply(corrList, pfround, digits)
+  cat("\nResidual Error =", fround(summ.ml$residError,
+                                   digits), "\n")
+  cat("\n---Groups\n")
+  cat(sprintf("number of obs: %d, groups: ", summ.ml$modn))
+  cat(paste(paste(names(summ.ml$ngrps), summ.ml$ngrps, sep = ", "),
+            collapse = "; "))
+  cat("\n")
+  cat("\nModel Fit Stats")
+  cat(sprintf("\nAIC = %g", round(summ.ml$mAIC, 1)))
+  cat("\nResidual standard deviation =", fround(summ.ml$moDsigma.hat,
+                                                digits), "\n")
 }
 
 #' Apply a multilevel model to a list of data frames
 #'
 #' @param formula a formula to pass through compatible with merMod
 #' @param data a list object with each element being a data.frame
-#' @param parallel logical, should the models be run in parallel?
+#' @param parallel logical, should the models be run in parallel? Default FALSE. If so,
+#' the `future_lapply` function from the `future.apply` package is used. See
+#' details.
 #' @param ... additional arguments to pass to the estimating function
 #' @rdname merModList
+#'
+#' @details Parallel computing is provided by the `futures` package, and its
+#' extension the `future.apply` package to provide the `future_lapply` function
+#' for easy parallel computations on lists. To use this package, simply register
+#' a parallel backend using the `plan()` function from `futures` - an example
+#' is to use `plan(multisession)`
 #'
 #' @return a list of fitted merMod objects of class merModList
 #' @export
@@ -359,8 +370,17 @@ print.summary.merModList <- function(x, ...){
 #' fml <- "Reaction ~ Days + (Days | Subject)"
 #' mod <- lmerModList(fml, data = sim_list)
 #' summary(mod)
-lmerModList <- function(formula, data, parallel = NULL, ...){
-  ml <- lapply(data, function(d) lmer(formula, data = d, ...))
+lmerModList <- function(formula, data, parallel = FALSE, ...){
+  if(parallel) {
+    if (requireNamespace("future.apply", quietly=TRUE)) {
+      ml <- future.apply::future_lapply(data, function(d) lmer(formula, data = d, ...))
+    }
+    warning("Parallel set but future.apply not available. Running sequentially.")
+    ml <- lapply(data, function(d) lmer(formula, data = d, ...))
+  } else {
+    ml <- lapply(data, function(d) lmer(formula, data = d, ...))
+  }
+
   class(ml) <- "merModList"
   return(ml)
 }
@@ -372,8 +392,16 @@ lmerModList <- function(formula, data, parallel = NULL, ...){
 #' @return a merModList
 #' @importFrom blme blmer
 #' @export
-blmerModList <- function(formula, data, parallel = NULL, ...){
-  ml <- lapply(data, function(d) blmer(formula, data = d, ...))
+blmerModList <- function(formula, data, parallel = FALSE, ...){
+  if(parallel) {
+    if (requireNamespace("future.apply", quietly=TRUE)) {
+      ml <- future.apply::future_lapply(data, function(d) blmer(formula, data = d, ...))
+    }
+    warning("Parallel set but future.apply not available. Running sequentially.")
+    ml <- lapply(data, function(d) blmer(formula, data = d, ...))
+  } else {
+    ml <- lapply(data, function(d) blmer(formula, data = d, ...))
+  }
   class(ml) <- "merModList"
   return(ml)
 }
@@ -384,8 +412,16 @@ blmerModList <- function(formula, data, parallel = NULL, ...){
 #' @rdname merModList
 #' @return a merModList
 #' @export
-glmerModList <- function(formula, data, parallel = NULL, ...){
-  ml <- lapply(data, function(d) glmer(formula, data = d, ...))
+glmerModList <- function(formula, data, parallel = FALSE, ...){
+  if(parallel) {
+    if (requireNamespace("future.apply", quietly=TRUE)) {
+      ml <- future.apply::future_lapply(data, function(d) glmer(formula, data = d, ...))
+    }
+    warning("Parallel set but future.apply not available. Running sequentially.")
+    ml <- lapply(data, function(d) glmer(formula, data = d, ...))
+  } else {
+    ml <- lapply(data, function(d) glmer(formula, data = d, ...))
+  }
   class(ml) <- "merModList"
   return(ml)
 }
@@ -397,8 +433,16 @@ glmerModList <- function(formula, data, parallel = NULL, ...){
 #' @return a merModList
 #' @importFrom blme bglmer
 #' @export
-bglmerModList <- function(formula, data, parallel = NULL, ...){
-  ml <- lapply(data, function(d) bglmer(formula, data = d, ...))
+bglmerModList <- function(formula, data, parallel = FALSE, ...){
+  if(parallel) {
+    if (requireNamespace("future.apply", quietly=TRUE)) {
+      ml <- future.apply::future_lapply(data, function(d) bglmer(formula, data = d, ...))
+    }
+    warning("Parallel set but future.apply not available. Running sequentially.")
+    ml <- lapply(data, function(d) bglmer(formula, data = d, ...))
+  } else {
+    ml <- lapply(data, function(d) bglmer(formula, data = d, ...))
+  }
   class(ml) <- "merModList"
   return(ml)
 }

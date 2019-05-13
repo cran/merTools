@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="Jared Knowles and Carl Frederick" />
+
+<meta name="date" content="2019-05-12" />
+
+<title>Using merTools to Marginalize Over Random Effect Levels</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css" data-origin="pandoc">
+a.sourceLine { display: inline-block; line-height: 1.25; }
+a.sourceLine { pointer-events: none; color: inherit; text-decoration: inherit; }
+a.sourceLine:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode { white-space: pre; position: relative; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+code.sourceCode { white-space: pre-wrap; }
+a.sourceLine { text-indent: -1em; padding-left: 1em; }
+}
+pre.numberSource a.sourceLine
+  { position: relative; left: -4em; }
+pre.numberSource a.sourceLine::before
+  { content: attr(title);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; pointer-events: all; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {  }
+@media screen {
+a.sourceLine::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#header {
+text-align: center;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Using merTools to Marginalize Over Random Effect Levels</h1>
+<h4 class="author">Jared Knowles and Carl Frederick</h4>
+<h4 class="date">2019-05-12</h4>
+
+
+
+<div id="marginalizing-random-effects" class="section level1">
+<h1>Marginalizing Random Effects</h1>
+<p>One of the most common questions about multilevel models is how much influence grouping terms have on the outcome. One way to explore this is to simulate the predicted values of an observation across the distribution of random effects for a specific grouping variable and term. This can be described as “marginalizing” predictions over the distribution of random effects. This allows you to explore the influence of the grouping term and grouping levels on the outcome scale by simulating predictions for simulated values of each observation across the distribution of effect sizes.</p>
+<p>The <code>REmargins()</code> function allows you to do this. Here, we take the example <code>sleepstudy</code> model and marginalize predictions for all of the random effect terms (Subject:Intercept, Subject:Days). By default, the function will marginalize over the <em>quartiles</em> of the expected rank (see expected rank vignette) of the effect distribution for each term.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb1-1" title="1">fm1 &lt;-<span class="st"> </span><span class="kw">lmer</span>(Reaction <span class="op">~</span><span class="st"> </span>Days <span class="op">+</span><span class="st"> </span>(Days <span class="op">|</span><span class="st"> </span>Subject), sleepstudy)</a>
+<a class="sourceLine" id="cb1-2" title="2">mfx &lt;-<span class="st"> </span><span class="kw">REmargins</span>(<span class="dt">merMod =</span> fm1, <span class="dt">newdata =</span> sleepstudy[<span class="dv">1</span><span class="op">:</span><span class="dv">10</span>,])</a>
+<a class="sourceLine" id="cb1-3" title="3"><span class="kw">head</span>(mfx)</a>
+<a class="sourceLine" id="cb1-4" title="4"><span class="co">#&gt;   Reaction Days Subject case grouping_var      term breaks</span></a>
+<a class="sourceLine" id="cb1-5" title="5"><span class="co">#&gt; 1   249.56    0     309    1      Subject Intercept      1</span></a>
+<a class="sourceLine" id="cb1-6" title="6"><span class="co">#&gt; 2   249.56    0     334    1      Subject      Days      1</span></a>
+<a class="sourceLine" id="cb1-7" title="7"><span class="co">#&gt; 3   249.56    0     350    1      Subject Intercept      2</span></a>
+<a class="sourceLine" id="cb1-8" title="8"><span class="co">#&gt; 4   249.56    0     330    1      Subject      Days      2</span></a>
+<a class="sourceLine" id="cb1-9" title="9"><span class="co">#&gt; 5   249.56    0     308    1      Subject Intercept      3</span></a>
+<a class="sourceLine" id="cb1-10" title="10"><span class="co">#&gt; 6   249.56    0     332    1      Subject      Days      3</span></a>
+<a class="sourceLine" id="cb1-11" title="11"><span class="co">#&gt;   original_group_level fit_combined upr_combined lwr_combined fit_Subject</span></a>
+<a class="sourceLine" id="cb1-12" title="12"><span class="co">#&gt; 1                  308     211.6022     252.5443     177.4033  -40.220047</span></a>
+<a class="sourceLine" id="cb1-13" title="13"><span class="co">#&gt; 2                  308     244.4658     283.3303     207.5940   -7.471686</span></a>
+<a class="sourceLine" id="cb1-14" title="14"><span class="co">#&gt; 3                  308     237.1407     277.0037     201.7126  -15.712567</span></a>
+<a class="sourceLine" id="cb1-15" title="15"><span class="co">#&gt; 4                  308     276.0716     311.4830     239.3424   22.626852</span></a>
+<a class="sourceLine" id="cb1-16" title="16"><span class="co">#&gt; 5                  308     256.3923     292.7700     216.6426    3.815614</span></a>
+<a class="sourceLine" id="cb1-17" title="17"><span class="co">#&gt; 6                  308     262.6514     295.5489     224.5716   10.306149</span></a>
+<a class="sourceLine" id="cb1-18" title="18"><span class="co">#&gt;   upr_Subject lwr_Subject fit_fixed upr_fixed lwr_fixed</span></a>
+<a class="sourceLine" id="cb1-19" title="19"><span class="co">#&gt; 1   -4.177672   -74.44036  249.3960  283.5701  215.7122</span></a>
+<a class="sourceLine" id="cb1-20" title="20"><span class="co">#&gt; 2   29.913604   -45.58652  251.8809  286.7075  218.0804</span></a>
+<a class="sourceLine" id="cb1-21" title="21"><span class="co">#&gt; 3   21.558164   -52.58777  250.4633  288.5282  216.1605</span></a>
+<a class="sourceLine" id="cb1-22" title="22"><span class="co">#&gt; 4   59.942004   -14.46200  249.9996  285.5817  216.0925</span></a>
+<a class="sourceLine" id="cb1-23" title="23"><span class="co">#&gt; 5   40.481303   -34.47880  252.2277  285.3248  217.0583</span></a>
+<a class="sourceLine" id="cb1-24" title="24"><span class="co">#&gt; 6   48.049021   -28.16187  252.2168  286.4449  218.3318</span></a></code></pre></div>
+<p>The new data frame output from <code>REmargins</code> contains a lot of information. The first few columns contain the original data passed to <code>newdata</code>. Each observation in <code>newdata</code> is identified by a <code>case</code> number, because the function repeats each observation by the number of random effect terms and number of breaks to simulate each term over. Then the <code>grouping_var</code></p>
+</div>
+<div id="summarizing" class="section level1">
+<h1>Summarizing</h1>
+</div>
+<div id="plotting" class="section level1">
+<h1>Plotting</h1>
+<p>Finally - you can plot the results marginalization to evaluate the effect of the random effect terms graphically.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1"><span class="kw">ggplot</span>(mfx) <span class="op">+</span><span class="st"> </span><span class="kw">aes</span>(<span class="dt">x =</span> breaks, <span class="dt">y =</span> fit_Subject, <span class="dt">group =</span> case) <span class="op">+</span></a>
+<a class="sourceLine" id="cb2-2" title="2"><span class="st">  </span><span class="kw">geom_line</span>() <span class="op">+</span></a>
+<a class="sourceLine" id="cb2-3" title="3"><span class="st">  </span><span class="kw">facet_wrap</span>(<span class="op">~</span>term)</a></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

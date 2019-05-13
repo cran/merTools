@@ -1,5 +1,5 @@
 
-set.seed(101)
+set.seed(51315)
 
 #Prediction intervals cover for simulated problems----
 context("Prediction intervals cover for simulated problems")
@@ -751,14 +751,93 @@ test_that("Nested effects can work", {
   expect_equal(mean(predInt1[,3] - predInt2[,3]), 0, tol = sd(predInt1[,3])/20)
 })
 
-test_that("Corrections reduce predicted intervals", {
-  skip_on_cran()
-  fatmodel <- lmer(Reaction ~ Days + (1 | Subject), sleepstudy)
-  bigInterval <- suppressWarnings(predictInterval(fatmodel, sleepstudy[1,], include.resid.var=0))
-  medInterval <- suppressWarnings(predictInterval(fatmodel, sleepstudy[1,], include.resid.var=0, fix.intercept.variance = T))
-  smInterval <- suppressWarnings(predictInterval(fatmodel, sleepstudy[1,], include.resid.var=0, ignore.fixed.terms = 1))
+context("Interactions without intercepts")
 
-  expect_true(bigInterval[1,c(2)] - bigInterval[1,c(3)] > medInterval[1,c(2)] - medInterval[1,c(3)])
-  expect_true(medInterval[1,c(2)] - medInterval[1,c(3)] > smInterval[1,c(2)] - smInterval[1,c(3)])
-  expect_true(smInterval[1,c(2)] - smInterval[1,c(3)] > 0)
+sleepstudy$Test <- rep(sample(c(TRUE, FALSE), length(unique(sleepstudy$Subject)),
+                              replace = TRUE), each = 10)
+m1 <- lmer(Reaction ~ Days:Test + (0 + Days | Subject), data = sleepstudy)
+
+sleepstudy$cars <- sleepstudy$Days*3
+m2 <- lmer(Reaction ~ cars:Test + (0 + Days | Subject), data = sleepstudy)
+m3 <- lmer(Reaction ~ cars:Test + (1 | Subject), data = sleepstudy)
+m4 <- lmer(Reaction ~ cars:Test + (0 + cars | Subject), data = sleepstudy)
+
+test_that("Models with cross-level interaction and no random intercept work", {
+  preds1 <- predictInterval(m1)
+  expect_equal(nrow(preds1), 180)
+  expect_equal(ncol(preds1), 3)
+  expect_message(predictInterval(m1))
+  preds1 <- predictInterval(m1, newdata = sleepstudy[1:10, ],
+                            level = 0.9, n.sims = 500, include.resid.var = FALSE,
+                            fix.intercept.variance = TRUE)
+  expect_equal(nrow(preds1), 10)
+  expect_equal(ncol(preds1), 3)
+  preds1 <- predictInterval(m1, newdata = sleepstudy[1:10, ],
+                            level = 0.9, n.sims = 500, include.resid.var = FALSE,
+                            ignore.fixed.terms = TRUE)
+  expect_equal(nrow(preds1), 10)
+  expect_equal(ncol(preds1), 3)
+
+  preds2 <- predictInterval(m1, newdata = sleepstudy[1:10, ],
+                            level = 0.9, n.sims = 500, include.resid.var = FALSE,
+                            ignore.fixed.terms = FALSE)
+  expect_equal(nrow(preds2), 10)
+  expect_equal(ncol(preds2), 3)
+  expect_false(any(preds1$fit == preds2$fit))
+  rm(preds1, preds2)
+  preds1 <- predictInterval(m2)
+  expect_equal(nrow(preds1), 180)
+  expect_equal(ncol(preds1), 3)
+  truPred <- predict(m2)
+  expect_equal(mean(preds1$fit - truPred), 0, tolerance = sd(truPred)/100)
+
+  #
+  preds1 <- predictInterval(m3)
+  expect_equal(nrow(preds1), 180)
+  expect_equal(ncol(preds1), 3)
+  truPred <- predict(m3)
+  expect_equal(mean(preds1$fit - truPred), 0, tolerance = sd(truPred)/100)
+  #
+  preds1 <- predictInterval(m4)
+  expect_equal(nrow(preds1), 180)
+  expect_equal(ncol(preds1), 3)
+  truPred <- predict(m4)
+  expect_equal(mean(preds1$fit - truPred), 0, tolerance = sd(truPred)/100)
+})
+
+
+m1 <- lmer(Reaction ~ 0 + Days + Days:Subject + (1 | Days), data = sleepstudy)
+test_that("Models with cross-level interaction and no random intercept work", {
+  preds1 <- predictInterval(m1)
+  expect_equal(nrow(preds1), 180)
+  expect_equal(ncol(preds1), 3)
+  expect_warning(predictInterval(m1, fix.intercept.variance = TRUE))
+
+  preds1 <- predictInterval(m1, newdata = sleepstudy[1:10, ],
+                            level = 0.9, n.sims = 500, include.resid.var = FALSE,
+                            ignore.fixed.terms = TRUE)
+  expect_equal(nrow(preds1), 10)
+  expect_equal(ncol(preds1), 3)
+  truPred <- predict(m1, newdata = sleepstudy[1:10,])
+  expect_equal(mean(preds1$fit - truPred), 0, tolerance = sd(truPred)/100)
+
+  # This is less close
+  preds1 <- predictInterval(m1, newdata = sleepstudy[1:50, ],
+                            level = 0.9, n.sims = 500, include.resid.var = FALSE,
+                            ignore.fixed.terms = FALSE)
+  expect_equal(nrow(preds1), 50)
+  expect_equal(ncol(preds1), 3)
+  truPred <- predict(m1, newdata = sleepstudy[1:50,])
+  expect_equal(mean(preds1$fit - truPred), 0, tolerance = sd(truPred)/25)
+
+  expect_warning({
+    preds1 <- predictInterval(m1, newdata = sleepstudy[1:50, ],
+                            level = 0.9, n.sims = 500, include.resid.var = FALSE,
+                            fix.intercept.variance = TRUE)
+  })
+  expect_failure({
+    expect_equal(mean(preds1$fit - truPred), 0, tolerance = sd(truPred)/100)
+  })
+
+
 })

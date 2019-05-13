@@ -11,8 +11,8 @@ m1  <- lmer(Reaction ~ Days + (1 | Subject), sleepstudy)
 m2 <- lmer(Reaction ~ Days + (Days | Subject), sleepstudy)
 
 # Wackier example
-data(Orthodont,package="nlme")
-Orthodont$nsex <- as.numeric(Orthodont$Sex=="Male")
+data(Orthodont,package = "nlme")
+Orthodont$nsex <- as.numeric(Orthodont$Sex == "Male")
 Orthodont$nsexage <- with(Orthodont, nsex*age)
 m3 <- lmer(distance ~ age + (0 + age + nsex|Subject), data=Orthodont)
 
@@ -33,15 +33,16 @@ m5  <- glmer(form, family="poisson",data=grouseticks,
 
 #Custom Expectation Functions
   expect_correct_dim <- function(merMod, groupFctr=NULL, term=NULL) {
-    if (is.null(groupFctr))
+    if (is.null(groupFctr)) {
       n.levels <- nrow(ranef(merMod)[[1]])
-    else
+    } else {
       n.levels <- nrow(ranef(merMod)[[groupFctr]])
+    }
     ER <- expectedRank(merMod, groupFctr, term)
-    expect_true(nrow(ER)==n.levels &&
-                ncol(ER)== 7 &&
-                colnames(ER)[6:7]==c("ER", "pctER") &&
-                class(ER)=="data.frame")
+    testthat::expect_true(nrow(ER) == n.levels &
+                ncol(ER) == 7 &
+                all(colnames(ER)[6:7] == c("ER", "pctER")) &
+                class(ER) == "data.frame")
   }
 
 
@@ -84,6 +85,3 @@ test_that("Percentile ranks have the correct range", {
    expect_true(max(expectedRank(m1)$pctER) <= 100)
    expect_true(min(expectedRank(m1)$pctER) >= 0)
 })
-
-
-
