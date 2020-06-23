@@ -4,12 +4,22 @@
 \alias{predictInterval}
 \title{Predict from merMod objects with a prediction interval}
 \usage{
-predictInterval(merMod, newdata, which = c("full", "fixed", "random",
-  "all"), level = 0.8, n.sims = 1000, stat = c("median", "mean"),
+predictInterval(
+  merMod,
+  newdata,
+  which = c("full", "fixed", "random", "all"),
+  level = 0.8,
+  n.sims = 1000,
+  stat = c("median", "mean"),
   type = c("linear.prediction", "probability"),
-  include.resid.var = TRUE, returnSims = FALSE, seed = NULL,
-  .parallel = FALSE, .paropts = NULL, fix.intercept.variance = FALSE,
-  ignore.fixed.terms = NULL)
+  include.resid.var = TRUE,
+  returnSims = FALSE,
+  seed = NULL,
+  .parallel = FALSE,
+  .paropts = NULL,
+  fix.intercept.variance = FALSE,
+  ignore.fixed.terms = NULL
+)
 }
 \arguments{
 \item{merMod}{a merMod object from lme4}
@@ -106,6 +116,7 @@ to allow the user to estimate the variability in \code{theta} from a larger
 model by bootstrapping the model fit on a subset, to allow faster estimation.
 }
 \examples{
+\donttest{
 m1 <- lmer(Reaction ~ Days + (1 | Subject), sleepstudy)
 regFit <- predict(m1, newdata = sleepstudy[11, ]) # a single value is returned
 intFit <- predictInterval(m1, newdata = sleepstudy[11, ]) # bounded values
@@ -119,4 +130,5 @@ d1$y <- d1$incidence / d1$size
  regFit <- predict(gm2, newdata = d1[1:10, ], type = "response")
  intFit <- predictInterval(gm2, newdata = d1[1:10, ], type = "probability")
  intFit <- predictInterval(gm2, newdata = d1[1:10, ], type = "linear.prediction")
+ }
 }

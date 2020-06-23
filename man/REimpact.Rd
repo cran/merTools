@@ -5,8 +5,7 @@
 \title{Calculate the weighted mean of fitted values for various levels of
 random effect terms.}
 \usage{
-REimpact(merMod, newdata, groupFctr = NULL, term = NULL, breaks = 3,
-  ...)
+REimpact(merMod, newdata, groupFctr = NULL, term = NULL, breaks = 3, ...)
 }
 \arguments{
 \item{merMod}{An object of class merMod}
@@ -66,6 +65,7 @@ This function uses the formula for variance of a weighted mean
 recommended by Cochran (1977).
 }
 \examples{
+\donttest{
 #For a one-level random intercept model
 m1 <- lmer(Reaction ~ Days + (1 | Subject), sleepstudy)
 m1.er <- REimpact(m1, newdata = sleepstudy[1, ], breaks = 2)
@@ -77,7 +77,7 @@ m2.er1 <- REimpact(m2,  newdata = sleepstudy[1, ],
 #ranked by the random intercept
 m2.er2 <- REimpact(m2, newdata = sleepstudy[1, ],
              groupFctr = "Subject", term="int")
-\donttest{
+
 # You can also pass additional arguments to predictInterval through REimpact
 g1 <- lmer(y ~ lectage + studage + (1|d) + (1|s), data=InstEval)
 zed <- REimpact(g1, newdata = InstEval[9:12, ], groupFctr = "d", n.sims = 50,

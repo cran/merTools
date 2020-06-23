@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <meta name="author" content="Jared Knowles" />
 
-<meta name="date" content="2019-05-12" />
+<meta name="date" content="2020-06-22" />
 
 <title>Analyzing Imputed Data with Multilevel Models and merTools</title>
 
@@ -96,7 +96,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' || rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -117,9 +117,6 @@ padding-right: 2em;
 font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 font-size: 14px;
 line-height: 1.35;
-}
-#header {
-text-align: center;
 }
 #TOC {
 clear: both;
@@ -288,7 +285,8 @@ code > span.st { color: #d14; }
 code > span.co { color: #888888; font-style: italic; } 
 code > span.ot { color: #007020; } 
 code > span.al { color: #ff0000; font-weight: bold; } 
-code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61717; background-color: #e3d2d2; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
 </style>
 
 
@@ -303,7 +301,7 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 
 <h1 class="title toc-ignore">Analyzing Imputed Data with Multilevel Models and merTools</h1>
 <h4 class="author">Jared Knowles</h4>
-<h4 class="date">2019-05-12</h4>
+<h4 class="date">2020-06-22</h4>
 
 
 
@@ -331,25 +329,25 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <a class="sourceLine" id="cb1-12" title="12"><span class="kw">table</span>(<span class="kw">is.na</span>(hsb<span class="op">$</span>minority))</a>
 <a class="sourceLine" id="cb1-13" title="13"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb1-14" title="14"><span class="co">#&gt; FALSE  TRUE </span></a>
-<a class="sourceLine" id="cb1-15" title="15"><span class="co">#&gt;  6836   349</span></a>
+<a class="sourceLine" id="cb1-15" title="15"><span class="co">#&gt;  6868   317</span></a>
 <a class="sourceLine" id="cb1-16" title="16"></a>
 <a class="sourceLine" id="cb1-17" title="17">hsb<span class="op">$</span>female &lt;-<span class="st"> </span><span class="kw">add_NA</span>(hsb<span class="op">$</span>female, <span class="dt">prob =</span> <span class="fl">0.05</span>)</a>
 <a class="sourceLine" id="cb1-18" title="18"><span class="kw">table</span>(<span class="kw">is.na</span>(hsb<span class="op">$</span>female))</a>
 <a class="sourceLine" id="cb1-19" title="19"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb1-20" title="20"><span class="co">#&gt; FALSE  TRUE </span></a>
-<a class="sourceLine" id="cb1-21" title="21"><span class="co">#&gt;  6830   355</span></a>
+<a class="sourceLine" id="cb1-21" title="21"><span class="co">#&gt;  6802   383</span></a>
 <a class="sourceLine" id="cb1-22" title="22"></a>
 <a class="sourceLine" id="cb1-23" title="23">hsb<span class="op">$</span>ses &lt;-<span class="st"> </span><span class="kw">add_NA</span>(hsb<span class="op">$</span>ses, <span class="dt">prob =</span> <span class="fl">0.05</span>)</a>
 <a class="sourceLine" id="cb1-24" title="24"><span class="kw">table</span>(<span class="kw">is.na</span>(hsb<span class="op">$</span>ses))</a>
 <a class="sourceLine" id="cb1-25" title="25"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb1-26" title="26"><span class="co">#&gt; FALSE  TRUE </span></a>
-<a class="sourceLine" id="cb1-27" title="27"><span class="co">#&gt;  6821   364</span></a>
+<a class="sourceLine" id="cb1-27" title="27"><span class="co">#&gt;  6803   382</span></a>
 <a class="sourceLine" id="cb1-28" title="28"></a>
 <a class="sourceLine" id="cb1-29" title="29">hsb<span class="op">$</span>size &lt;-<span class="st"> </span><span class="kw">add_NA</span>(hsb<span class="op">$</span>size, <span class="dt">prob =</span> <span class="fl">0.05</span>)</a>
 <a class="sourceLine" id="cb1-30" title="30"><span class="kw">table</span>(<span class="kw">is.na</span>(hsb<span class="op">$</span>size))</a>
 <a class="sourceLine" id="cb1-31" title="31"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb1-32" title="32"><span class="co">#&gt; FALSE  TRUE </span></a>
-<a class="sourceLine" id="cb1-33" title="33"><span class="co">#&gt;  6848   337</span></a></code></pre></div>
+<a class="sourceLine" id="cb1-33" title="33"><span class="co">#&gt;  6825   360</span></a></code></pre></div>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb2-1" title="1"><span class="co"># Load imputation library</span></a>
 <a class="sourceLine" id="cb2-2" title="2"><span class="kw">library</span>(Amelia)</a>
 <a class="sourceLine" id="cb2-3" title="3"><span class="co"># Declare the variables to include in the imputation data</span></a>
@@ -357,12 +355,12 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <a class="sourceLine" id="cb2-5" title="5"><span class="co"># Declare ID variables to be excluded from imputation</span></a>
 <a class="sourceLine" id="cb2-6" title="6">IDS &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;schid&quot;</span>, <span class="st">&quot;meanses&quot;</span>)</a>
 <a class="sourceLine" id="cb2-7" title="7"><span class="co"># Imputate</span></a>
-<a class="sourceLine" id="cb2-8" title="8">impute.out &lt;-<span class="st"> </span><span class="kw">amelia</span>(hsb[, varIndex], <span class="dt">idvars =</span> IDS, </a>
-<a class="sourceLine" id="cb2-9" title="9">                         <span class="dt">noms =</span> <span class="kw">c</span>(<span class="st">&quot;minority&quot;</span>, <span class="st">&quot;female&quot;</span>), </a>
+<a class="sourceLine" id="cb2-8" title="8">impute.out &lt;-<span class="st"> </span><span class="kw">amelia</span>(hsb[, varIndex], <span class="dt">idvars =</span> IDS,</a>
+<a class="sourceLine" id="cb2-9" title="9">                         <span class="dt">noms =</span> <span class="kw">c</span>(<span class="st">&quot;minority&quot;</span>, <span class="st">&quot;female&quot;</span>),</a>
 <a class="sourceLine" id="cb2-10" title="10">                         <span class="dt">m =</span> <span class="dv">5</span>)</a>
 <a class="sourceLine" id="cb2-11" title="11"><span class="co">#&gt; -- Imputation 1 --</span></a>
 <a class="sourceLine" id="cb2-12" title="12"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb2-13" title="13"><span class="co">#&gt;   1  2  3</span></a>
+<a class="sourceLine" id="cb2-13" title="13"><span class="co">#&gt;   1  2  3  4</span></a>
 <a class="sourceLine" id="cb2-14" title="14"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb2-15" title="15"><span class="co">#&gt; -- Imputation 2 --</span></a>
 <a class="sourceLine" id="cb2-16" title="16"><span class="co">#&gt; </span></a>
@@ -370,11 +368,11 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <a class="sourceLine" id="cb2-18" title="18"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb2-19" title="19"><span class="co">#&gt; -- Imputation 3 --</span></a>
 <a class="sourceLine" id="cb2-20" title="20"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb2-21" title="21"><span class="co">#&gt;   1  2  3  4</span></a>
+<a class="sourceLine" id="cb2-21" title="21"><span class="co">#&gt;   1  2  3</span></a>
 <a class="sourceLine" id="cb2-22" title="22"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb2-23" title="23"><span class="co">#&gt; -- Imputation 4 --</span></a>
 <a class="sourceLine" id="cb2-24" title="24"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb2-25" title="25"><span class="co">#&gt;   1  2  3  4</span></a>
+<a class="sourceLine" id="cb2-25" title="25"><span class="co">#&gt;   1  2  3</span></a>
 <a class="sourceLine" id="cb2-26" title="26"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb2-27" title="27"><span class="co">#&gt; -- Imputation 5 --</span></a>
 <a class="sourceLine" id="cb2-28" title="28"><span class="co">#&gt; </span></a>
@@ -387,26 +385,26 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <a class="sourceLine" id="cb2-35" title="35"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb2-36" title="36"><span class="co">#&gt; Chain Lengths:</span></a>
 <a class="sourceLine" id="cb2-37" title="37"><span class="co">#&gt; --------------</span></a>
-<a class="sourceLine" id="cb2-38" title="38"><span class="co">#&gt; Imputation 1:  3</span></a>
+<a class="sourceLine" id="cb2-38" title="38"><span class="co">#&gt; Imputation 1:  4</span></a>
 <a class="sourceLine" id="cb2-39" title="39"><span class="co">#&gt; Imputation 2:  3</span></a>
-<a class="sourceLine" id="cb2-40" title="40"><span class="co">#&gt; Imputation 3:  4</span></a>
-<a class="sourceLine" id="cb2-41" title="41"><span class="co">#&gt; Imputation 4:  4</span></a>
+<a class="sourceLine" id="cb2-40" title="40"><span class="co">#&gt; Imputation 3:  3</span></a>
+<a class="sourceLine" id="cb2-41" title="41"><span class="co">#&gt; Imputation 4:  3</span></a>
 <a class="sourceLine" id="cb2-42" title="42"><span class="co">#&gt; Imputation 5:  3</span></a>
 <a class="sourceLine" id="cb2-43" title="43"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb2-44" title="44"><span class="co">#&gt; Rows after Listwise Deletion:  5865 </span></a>
+<a class="sourceLine" id="cb2-44" title="44"><span class="co">#&gt; Rows after Listwise Deletion:  5853 </span></a>
 <a class="sourceLine" id="cb2-45" title="45"><span class="co">#&gt; Rows after Imputation:  7185 </span></a>
-<a class="sourceLine" id="cb2-46" title="46"><span class="co">#&gt; Patterns of missingness in the data:  13 </span></a>
+<a class="sourceLine" id="cb2-46" title="46"><span class="co">#&gt; Patterns of missingness in the data:  14 </span></a>
 <a class="sourceLine" id="cb2-47" title="47"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb2-48" title="48"><span class="co">#&gt; Fraction Missing for original variables: </span></a>
 <a class="sourceLine" id="cb2-49" title="49"><span class="co">#&gt; -----------------------------------------</span></a>
 <a class="sourceLine" id="cb2-50" title="50"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb2-51" title="51"><span class="co">#&gt;          Fraction Missing</span></a>
 <a class="sourceLine" id="cb2-52" title="52"><span class="co">#&gt; schid          0.00000000</span></a>
-<a class="sourceLine" id="cb2-53" title="53"><span class="co">#&gt; minority       0.04857342</span></a>
-<a class="sourceLine" id="cb2-54" title="54"><span class="co">#&gt; female         0.04940849</span></a>
-<a class="sourceLine" id="cb2-55" title="55"><span class="co">#&gt; ses            0.05066110</span></a>
+<a class="sourceLine" id="cb2-53" title="53"><span class="co">#&gt; minority       0.04411969</span></a>
+<a class="sourceLine" id="cb2-54" title="54"><span class="co">#&gt; female         0.05330550</span></a>
+<a class="sourceLine" id="cb2-55" title="55"><span class="co">#&gt; ses            0.05316632</span></a>
 <a class="sourceLine" id="cb2-56" title="56"><span class="co">#&gt; mathach        0.00000000</span></a>
-<a class="sourceLine" id="cb2-57" title="57"><span class="co">#&gt; size           0.04690327</span></a>
+<a class="sourceLine" id="cb2-57" title="57"><span class="co">#&gt; size           0.05010438</span></a>
 <a class="sourceLine" id="cb2-58" title="58"><span class="co">#&gt; schtype        0.00000000</span></a>
 <a class="sourceLine" id="cb2-59" title="59"><span class="co">#&gt; meanses        0.00000000</span></a></code></pre></div>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb3-1" title="1"><span class="co"># Amelia is not available so let&#39;s just boostrap resample our data</span></a>
@@ -429,63 +427,60 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <a class="sourceLine" id="cb4-5" title="5">} <span class="cf">else</span> {</a>
 <a class="sourceLine" id="cb4-6" title="6">  <span class="co"># Use bootstrapped data instead</span></a>
 <a class="sourceLine" id="cb4-7" title="7">  modList &lt;-<span class="st"> </span><span class="kw">lmerModList</span>(fmla, <span class="dt">data =</span> impute.out)</a>
-<a class="sourceLine" id="cb4-8" title="8">}</a>
-<a class="sourceLine" id="cb4-9" title="9"><span class="co">#&gt; Warning in checkConv(attr(opt, &quot;derivs&quot;), opt$par, ctrl =</span></a>
-<a class="sourceLine" id="cb4-10" title="10"><span class="co">#&gt; control$checkConv, : Model failed to converge with max|grad| = 0.00243706</span></a>
-<a class="sourceLine" id="cb4-11" title="11"><span class="co">#&gt; (tol = 0.002, component 1)</span></a></code></pre></div>
+<a class="sourceLine" id="cb4-8" title="8">}</a></code></pre></div>
 <p>The resulting object <code>modList</code> is a list of <code>merMod</code> objects the same length as the number of imputation datasets. This object is assigned the class of <code>merModList</code> and <code>merTools</code> provides some convenience functions for reporting the results of this object.</p>
 <p>Using this, we can directly compare the model fit with missing data excluded to the aggregate from the imputed models:</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" title="1"><span class="kw">fixef</span>(mod) <span class="co"># model with dropped missing</span></a>
 <a class="sourceLine" id="cb5-2" title="2"><span class="co">#&gt; (Intercept)    minority      female         ses     meanses </span></a>
-<a class="sourceLine" id="cb5-3" title="3"><span class="co">#&gt;   14.042816   -2.701370   -1.182849    1.899924    2.992329</span></a>
+<a class="sourceLine" id="cb5-3" title="3"><span class="co">#&gt;   14.149102   -2.868687   -1.318437    2.067309    2.833490</span></a>
 <a class="sourceLine" id="cb5-4" title="4"><span class="kw">fixef</span>(modList)</a>
 <a class="sourceLine" id="cb5-5" title="5"><span class="co">#&gt; (Intercept)    minority      female         ses     meanses </span></a>
-<a class="sourceLine" id="cb5-6" title="6"><span class="co">#&gt;   13.964580   -2.501642   -1.197021    1.930981    3.218819</span></a></code></pre></div>
+<a class="sourceLine" id="cb5-6" title="6"><span class="co">#&gt;   14.028792   -2.680352   -1.213086    1.966725    3.141636</span></a></code></pre></div>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb6-1" title="1"><span class="kw">VarCorr</span>(mod) <span class="co"># model with dropped missing</span></a>
 <a class="sourceLine" id="cb6-2" title="2"><span class="co">#&gt;  Groups   Name        Std.Dev. Corr  </span></a>
-<a class="sourceLine" id="cb6-3" title="3"><span class="co">#&gt;  schid    (Intercept) 1.53619        </span></a>
-<a class="sourceLine" id="cb6-4" title="4"><span class="co">#&gt;           ses         0.64937  -0.566</span></a>
-<a class="sourceLine" id="cb6-5" title="5"><span class="co">#&gt;  Residual             6.00409</span></a>
+<a class="sourceLine" id="cb6-3" title="3"><span class="co">#&gt;  schid    (Intercept) 1.54204        </span></a>
+<a class="sourceLine" id="cb6-4" title="4"><span class="co">#&gt;           ses         0.52515  -0.765</span></a>
+<a class="sourceLine" id="cb6-5" title="5"><span class="co">#&gt;  Residual             5.98842</span></a>
 <a class="sourceLine" id="cb6-6" title="6"><span class="kw">VarCorr</span>(modList) <span class="co"># aggregate of imputed models</span></a>
 <a class="sourceLine" id="cb6-7" title="7"><span class="co">#&gt; $stddev</span></a>
 <a class="sourceLine" id="cb6-8" title="8"><span class="co">#&gt; $stddev$schid</span></a>
 <a class="sourceLine" id="cb6-9" title="9"><span class="co">#&gt; (Intercept)         ses </span></a>
-<a class="sourceLine" id="cb6-10" title="10"><span class="co">#&gt;   1.5252886   0.6712887 </span></a>
+<a class="sourceLine" id="cb6-10" title="10"><span class="co">#&gt;   1.5183804   0.6468874 </span></a>
 <a class="sourceLine" id="cb6-11" title="11"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb6-12" title="12"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb6-13" title="13"><span class="co">#&gt; $correlation</span></a>
 <a class="sourceLine" id="cb6-14" title="14"><span class="co">#&gt; $correlation$schid</span></a>
-<a class="sourceLine" id="cb6-15" title="15"><span class="co">#&gt;             (Intercept)       ses</span></a>
-<a class="sourceLine" id="cb6-16" title="16"><span class="co">#&gt; (Intercept)    1.000000 -0.493787</span></a>
-<a class="sourceLine" id="cb6-17" title="17"><span class="co">#&gt; ses           -0.493787  1.000000</span></a></code></pre></div>
+<a class="sourceLine" id="cb6-15" title="15"><span class="co">#&gt;             (Intercept)        ses</span></a>
+<a class="sourceLine" id="cb6-16" title="16"><span class="co">#&gt; (Intercept)   1.0000000 -0.5247666</span></a>
+<a class="sourceLine" id="cb6-17" title="17"><span class="co">#&gt; ses          -0.5247666  1.0000000</span></a></code></pre></div>
 <p>If you want to inspect the individual models, or you do not like taking the mean across the imputation replications, you can take the <code>merModList</code> apart easily:</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1"><span class="kw">lapply</span>(modList, fixef)</a>
 <a class="sourceLine" id="cb7-2" title="2"><span class="co">#&gt; $imp1</span></a>
 <a class="sourceLine" id="cb7-3" title="3"><span class="co">#&gt; (Intercept)    minority      female         ses     meanses </span></a>
-<a class="sourceLine" id="cb7-4" title="4"><span class="co">#&gt;   13.963960   -2.506025   -1.187511    1.956362    3.176900 </span></a>
+<a class="sourceLine" id="cb7-4" title="4"><span class="co">#&gt;   13.976636   -2.587948   -1.170291    1.984663    3.170845 </span></a>
 <a class="sourceLine" id="cb7-5" title="5"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb7-6" title="6"><span class="co">#&gt; $imp2</span></a>
 <a class="sourceLine" id="cb7-7" title="7"><span class="co">#&gt; (Intercept)    minority      female         ses     meanses </span></a>
-<a class="sourceLine" id="cb7-8" title="8"><span class="co">#&gt;   13.965839   -2.476253   -1.207036    1.941314    3.176969 </span></a>
+<a class="sourceLine" id="cb7-8" title="8"><span class="co">#&gt;   14.070484   -2.673140   -1.294932    1.959564    3.143996 </span></a>
 <a class="sourceLine" id="cb7-9" title="9"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb7-10" title="10"><span class="co">#&gt; $imp3</span></a>
 <a class="sourceLine" id="cb7-11" title="11"><span class="co">#&gt; (Intercept)    minority      female         ses     meanses </span></a>
-<a class="sourceLine" id="cb7-12" title="12"><span class="co">#&gt;   13.968526   -2.573101   -1.172855    1.934888    3.206586 </span></a>
+<a class="sourceLine" id="cb7-12" title="12"><span class="co">#&gt;   14.040516   -2.728450   -1.215497    1.958265    3.134720 </span></a>
 <a class="sourceLine" id="cb7-13" title="13"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb7-14" title="14"><span class="co">#&gt; $imp4</span></a>
 <a class="sourceLine" id="cb7-15" title="15"><span class="co">#&gt; (Intercept)    minority      female         ses     meanses </span></a>
-<a class="sourceLine" id="cb7-16" title="16"><span class="co">#&gt;   13.961077   -2.427355   -1.230145    1.927593    3.245608 </span></a>
+<a class="sourceLine" id="cb7-16" title="16"><span class="co">#&gt;   14.030150   -2.698588   -1.214679    1.997264    3.081103 </span></a>
 <a class="sourceLine" id="cb7-17" title="17"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb7-18" title="18"><span class="co">#&gt; $imp5</span></a>
 <a class="sourceLine" id="cb7-19" title="19"><span class="co">#&gt; (Intercept)    minority      female         ses     meanses </span></a>
-<a class="sourceLine" id="cb7-20" title="20"><span class="co">#&gt;   13.963497   -2.525473   -1.187560    1.894750    3.288035</span></a></code></pre></div>
+<a class="sourceLine" id="cb7-20" title="20"><span class="co">#&gt;   14.026175   -2.713636   -1.170030    1.933870    3.177518</span></a></code></pre></div>
 <p>And, you can always operate on any single element of the list:</p>
 <div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" title="1"><span class="kw">fixef</span>(modList[[<span class="dv">1</span>]])</a>
 <a class="sourceLine" id="cb8-2" title="2"><span class="co">#&gt; (Intercept)    minority      female         ses     meanses </span></a>
-<a class="sourceLine" id="cb8-3" title="3"><span class="co">#&gt;   13.963960   -2.506025   -1.187511    1.956362    3.176900</span></a>
+<a class="sourceLine" id="cb8-3" title="3"><span class="co">#&gt;   13.976636   -2.587948   -1.170291    1.984663    3.170845</span></a>
 <a class="sourceLine" id="cb8-4" title="4"><span class="kw">fixef</span>(modList[[<span class="dv">2</span>]])</a>
 <a class="sourceLine" id="cb8-5" title="5"><span class="co">#&gt; (Intercept)    minority      female         ses     meanses </span></a>
-<a class="sourceLine" id="cb8-6" title="6"><span class="co">#&gt;   13.965839   -2.476253   -1.207036    1.941314    3.176969</span></a></code></pre></div>
+<a class="sourceLine" id="cb8-6" title="6"><span class="co">#&gt;   14.070484   -2.673140   -1.294932    1.959564    3.143996</span></a></code></pre></div>
 </div>
 <div id="output-of-a-model-list" class="section level2">
 <h2>Output of a Model List</h2>
@@ -495,502 +490,489 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <a class="sourceLine" id="cb9-4" title="4"><span class="co">#&gt; Formula: mathach ~ minority + female + ses + meanses + (1 + ses | schid)</span></a>
 <a class="sourceLine" id="cb9-5" title="5"><span class="co">#&gt;    Data: d</span></a>
 <a class="sourceLine" id="cb9-6" title="6"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-7" title="7"><span class="co">#&gt; REML criterion at convergence: 46341.7</span></a>
+<a class="sourceLine" id="cb9-7" title="7"><span class="co">#&gt; REML criterion at convergence: 46328.3</span></a>
 <a class="sourceLine" id="cb9-8" title="8"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb9-9" title="9"><span class="co">#&gt; Scaled residuals: </span></a>
 <a class="sourceLine" id="cb9-10" title="10"><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></a>
-<a class="sourceLine" id="cb9-11" title="11"><span class="co">#&gt; -3.2121 -0.7269  0.0318  0.7616  2.9230 </span></a>
+<a class="sourceLine" id="cb9-11" title="11"><span class="co">#&gt; -3.2652 -0.7199  0.0371  0.7614  2.9108 </span></a>
 <a class="sourceLine" id="cb9-12" title="12"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb9-13" title="13"><span class="co">#&gt; Random effects:</span></a>
 <a class="sourceLine" id="cb9-14" title="14"><span class="co">#&gt;  Groups   Name        Variance Std.Dev. Corr </span></a>
-<a class="sourceLine" id="cb9-15" title="15"><span class="co">#&gt;  schid    (Intercept)  2.3241  1.5245        </span></a>
-<a class="sourceLine" id="cb9-16" title="16"><span class="co">#&gt;           ses          0.4518  0.6722   -0.45</span></a>
-<a class="sourceLine" id="cb9-17" title="17"><span class="co">#&gt;  Residual             35.7631  5.9802        </span></a>
+<a class="sourceLine" id="cb9-15" title="15"><span class="co">#&gt;  schid    (Intercept)  2.2763  1.5087        </span></a>
+<a class="sourceLine" id="cb9-16" title="16"><span class="co">#&gt;           ses          0.3676  0.6063   -0.61</span></a>
+<a class="sourceLine" id="cb9-17" title="17"><span class="co">#&gt;  Residual             35.7568  5.9797        </span></a>
 <a class="sourceLine" id="cb9-18" title="18"><span class="co">#&gt; Number of obs: 7185, groups:  schid, 160</span></a>
 <a class="sourceLine" id="cb9-19" title="19"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb9-20" title="20"><span class="co">#&gt; Fixed effects:</span></a>
 <a class="sourceLine" id="cb9-21" title="21"><span class="co">#&gt;             Estimate Std. Error t value</span></a>
-<a class="sourceLine" id="cb9-22" title="22"><span class="co">#&gt; (Intercept)  13.9640     0.1736  80.455</span></a>
-<a class="sourceLine" id="cb9-23" title="23"><span class="co">#&gt; minority     -2.5060     0.1983 -12.634</span></a>
-<a class="sourceLine" id="cb9-24" title="24"><span class="co">#&gt; female       -1.1875     0.1586  -7.489</span></a>
-<a class="sourceLine" id="cb9-25" title="25"><span class="co">#&gt; ses           1.9564     0.1207  16.215</span></a>
-<a class="sourceLine" id="cb9-26" title="26"><span class="co">#&gt; meanses       3.1769     0.3606   8.810</span></a>
+<a class="sourceLine" id="cb9-22" title="22"><span class="co">#&gt; (Intercept)  13.9766     0.1724  81.089</span></a>
+<a class="sourceLine" id="cb9-23" title="23"><span class="co">#&gt; minority     -2.5879     0.1994 -12.978</span></a>
+<a class="sourceLine" id="cb9-24" title="24"><span class="co">#&gt; female       -1.1703     0.1576  -7.425</span></a>
+<a class="sourceLine" id="cb9-25" title="25"><span class="co">#&gt; ses           1.9847     0.1182  16.787</span></a>
+<a class="sourceLine" id="cb9-26" title="26"><span class="co">#&gt; meanses       3.1708     0.3537   8.966</span></a>
 <a class="sourceLine" id="cb9-27" title="27"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb9-28" title="28"><span class="co">#&gt; Correlation of Fixed Effects:</span></a>
 <a class="sourceLine" id="cb9-29" title="29"><span class="co">#&gt;          (Intr) minrty female ses   </span></a>
-<a class="sourceLine" id="cb9-30" title="30"><span class="co">#&gt; minority -0.318                     </span></a>
-<a class="sourceLine" id="cb9-31" title="31"><span class="co">#&gt; female   -0.483  0.015              </span></a>
-<a class="sourceLine" id="cb9-32" title="32"><span class="co">#&gt; ses      -0.200  0.140  0.043       </span></a>
-<a class="sourceLine" id="cb9-33" title="33"><span class="co">#&gt; meanses  -0.091  0.121  0.023 -0.235</span></a>
+<a class="sourceLine" id="cb9-30" title="30"><span class="co">#&gt; minority -0.324                     </span></a>
+<a class="sourceLine" id="cb9-31" title="31"><span class="co">#&gt; female   -0.482  0.012              </span></a>
+<a class="sourceLine" id="cb9-32" title="32"><span class="co">#&gt; ses      -0.234  0.140  0.036       </span></a>
+<a class="sourceLine" id="cb9-33" title="33"><span class="co">#&gt; meanses  -0.102  0.126  0.023 -0.237</span></a>
 <a class="sourceLine" id="cb9-34" title="34"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb9-35" title="35"><span class="co">#&gt; $imp2</span></a>
 <a class="sourceLine" id="cb9-36" title="36"><span class="co">#&gt; Linear mixed model fit by REML [&#39;lmerMod&#39;]</span></a>
 <a class="sourceLine" id="cb9-37" title="37"><span class="co">#&gt; Formula: mathach ~ minority + female + ses + meanses + (1 + ses | schid)</span></a>
 <a class="sourceLine" id="cb9-38" title="38"><span class="co">#&gt;    Data: d</span></a>
 <a class="sourceLine" id="cb9-39" title="39"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-40" title="40"><span class="co">#&gt; REML criterion at convergence: 46354.9</span></a>
+<a class="sourceLine" id="cb9-40" title="40"><span class="co">#&gt; REML criterion at convergence: 46308.7</span></a>
 <a class="sourceLine" id="cb9-41" title="41"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb9-42" title="42"><span class="co">#&gt; Scaled residuals: </span></a>
 <a class="sourceLine" id="cb9-43" title="43"><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></a>
-<a class="sourceLine" id="cb9-44" title="44"><span class="co">#&gt; -3.2035 -0.7211  0.0323  0.7596  2.9226 </span></a>
+<a class="sourceLine" id="cb9-44" title="44"><span class="co">#&gt; -3.2162 -0.7183  0.0385  0.7576  2.9117 </span></a>
 <a class="sourceLine" id="cb9-45" title="45"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb9-46" title="46"><span class="co">#&gt; Random effects:</span></a>
 <a class="sourceLine" id="cb9-47" title="47"><span class="co">#&gt;  Groups   Name        Variance Std.Dev. Corr </span></a>
-<a class="sourceLine" id="cb9-48" title="48"><span class="co">#&gt;  schid    (Intercept)  2.3326  1.5273        </span></a>
-<a class="sourceLine" id="cb9-49" title="49"><span class="co">#&gt;           ses          0.3909  0.6252   -0.52</span></a>
-<a class="sourceLine" id="cb9-50" title="50"><span class="co">#&gt;  Residual             35.8580  5.9882        </span></a>
+<a class="sourceLine" id="cb9-48" title="48"><span class="co">#&gt;  schid    (Intercept)  2.286   1.5118        </span></a>
+<a class="sourceLine" id="cb9-49" title="49"><span class="co">#&gt;           ses          0.443   0.6656   -0.47</span></a>
+<a class="sourceLine" id="cb9-50" title="50"><span class="co">#&gt;  Residual             35.611   5.9675        </span></a>
 <a class="sourceLine" id="cb9-51" title="51"><span class="co">#&gt; Number of obs: 7185, groups:  schid, 160</span></a>
 <a class="sourceLine" id="cb9-52" title="52"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb9-53" title="53"><span class="co">#&gt; Fixed effects:</span></a>
 <a class="sourceLine" id="cb9-54" title="54"><span class="co">#&gt;             Estimate Std. Error t value</span></a>
-<a class="sourceLine" id="cb9-55" title="55"><span class="co">#&gt; (Intercept)  13.9658     0.1733  80.570</span></a>
-<a class="sourceLine" id="cb9-56" title="56"><span class="co">#&gt; minority     -2.4763     0.1993 -12.427</span></a>
-<a class="sourceLine" id="cb9-57" title="57"><span class="co">#&gt; female       -1.2070     0.1584  -7.620</span></a>
-<a class="sourceLine" id="cb9-58" title="58"><span class="co">#&gt; ses           1.9413     0.1193  16.273</span></a>
-<a class="sourceLine" id="cb9-59" title="59"><span class="co">#&gt; meanses       3.1770     0.3591   8.846</span></a>
+<a class="sourceLine" id="cb9-55" title="55"><span class="co">#&gt; (Intercept)  14.0705     0.1727  81.485</span></a>
+<a class="sourceLine" id="cb9-56" title="56"><span class="co">#&gt; minority     -2.6731     0.1985 -13.467</span></a>
+<a class="sourceLine" id="cb9-57" title="57"><span class="co">#&gt; female       -1.2949     0.1578  -8.205</span></a>
+<a class="sourceLine" id="cb9-58" title="58"><span class="co">#&gt; ses           1.9596     0.1202  16.299</span></a>
+<a class="sourceLine" id="cb9-59" title="59"><span class="co">#&gt; meanses       3.1440     0.3574   8.797</span></a>
 <a class="sourceLine" id="cb9-60" title="60"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb9-61" title="61"><span class="co">#&gt; Correlation of Fixed Effects:</span></a>
 <a class="sourceLine" id="cb9-62" title="62"><span class="co">#&gt;          (Intr) minrty female ses   </span></a>
-<a class="sourceLine" id="cb9-63" title="63"><span class="co">#&gt; minority -0.315                     </span></a>
-<a class="sourceLine" id="cb9-64" title="64"><span class="co">#&gt; female   -0.480  0.007              </span></a>
-<a class="sourceLine" id="cb9-65" title="65"><span class="co">#&gt; ses      -0.211  0.140  0.038       </span></a>
-<a class="sourceLine" id="cb9-66" title="66"><span class="co">#&gt; meanses  -0.096  0.124  0.023 -0.235</span></a>
-<a class="sourceLine" id="cb9-67" title="67"><span class="co">#&gt; convergence code: 0</span></a>
-<a class="sourceLine" id="cb9-68" title="68"><span class="co">#&gt; Model failed to converge with max|grad| = 0.00243706 (tol = 0.002, component 1)</span></a>
-<a class="sourceLine" id="cb9-69" title="69"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-70" title="70"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-71" title="71"><span class="co">#&gt; $imp3</span></a>
-<a class="sourceLine" id="cb9-72" title="72"><span class="co">#&gt; Linear mixed model fit by REML [&#39;lmerMod&#39;]</span></a>
-<a class="sourceLine" id="cb9-73" title="73"><span class="co">#&gt; Formula: mathach ~ minority + female + ses + meanses + (1 + ses | schid)</span></a>
-<a class="sourceLine" id="cb9-74" title="74"><span class="co">#&gt;    Data: d</span></a>
-<a class="sourceLine" id="cb9-75" title="75"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-76" title="76"><span class="co">#&gt; REML criterion at convergence: 46342.5</span></a>
-<a class="sourceLine" id="cb9-77" title="77"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-78" title="78"><span class="co">#&gt; Scaled residuals: </span></a>
-<a class="sourceLine" id="cb9-79" title="79"><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></a>
-<a class="sourceLine" id="cb9-80" title="80"><span class="co">#&gt; -3.2214 -0.7222  0.0331  0.7602  2.9194 </span></a>
-<a class="sourceLine" id="cb9-81" title="81"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-82" title="82"><span class="co">#&gt; Random effects:</span></a>
-<a class="sourceLine" id="cb9-83" title="83"><span class="co">#&gt;  Groups   Name        Variance Std.Dev. Corr </span></a>
-<a class="sourceLine" id="cb9-84" title="84"><span class="co">#&gt;  schid    (Intercept)  2.3567  1.5352        </span></a>
-<a class="sourceLine" id="cb9-85" title="85"><span class="co">#&gt;           ses          0.4808  0.6934   -0.46</span></a>
-<a class="sourceLine" id="cb9-86" title="86"><span class="co">#&gt;  Residual             35.7520  5.9793        </span></a>
-<a class="sourceLine" id="cb9-87" title="87"><span class="co">#&gt; Number of obs: 7185, groups:  schid, 160</span></a>
-<a class="sourceLine" id="cb9-88" title="88"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-89" title="89"><span class="co">#&gt; Fixed effects:</span></a>
-<a class="sourceLine" id="cb9-90" title="90"><span class="co">#&gt;             Estimate Std. Error t value</span></a>
-<a class="sourceLine" id="cb9-91" title="91"><span class="co">#&gt; (Intercept)  13.9685     0.1743  80.142</span></a>
-<a class="sourceLine" id="cb9-92" title="92"><span class="co">#&gt; minority     -2.5731     0.1987 -12.947</span></a>
-<a class="sourceLine" id="cb9-93" title="93"><span class="co">#&gt; female       -1.1729     0.1586  -7.393</span></a>
-<a class="sourceLine" id="cb9-94" title="94"><span class="co">#&gt; ses           1.9349     0.1215  15.928</span></a>
-<a class="sourceLine" id="cb9-95" title="95"><span class="co">#&gt; meanses       3.2066     0.3613   8.874</span></a>
-<a class="sourceLine" id="cb9-96" title="96"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-97" title="97"><span class="co">#&gt; Correlation of Fixed Effects:</span></a>
-<a class="sourceLine" id="cb9-98" title="98"><span class="co">#&gt;          (Intr) minrty female ses   </span></a>
-<a class="sourceLine" id="cb9-99" title="99"><span class="co">#&gt; minority -0.321                     </span></a>
-<a class="sourceLine" id="cb9-100" title="100"><span class="co">#&gt; female   -0.481  0.019              </span></a>
-<a class="sourceLine" id="cb9-101" title="101"><span class="co">#&gt; ses      -0.208  0.138  0.042       </span></a>
-<a class="sourceLine" id="cb9-102" title="102"><span class="co">#&gt; meanses  -0.093  0.123  0.025 -0.229</span></a>
-<a class="sourceLine" id="cb9-103" title="103"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-104" title="104"><span class="co">#&gt; $imp4</span></a>
-<a class="sourceLine" id="cb9-105" title="105"><span class="co">#&gt; Linear mixed model fit by REML [&#39;lmerMod&#39;]</span></a>
-<a class="sourceLine" id="cb9-106" title="106"><span class="co">#&gt; Formula: mathach ~ minority + female + ses + meanses + (1 + ses | schid)</span></a>
-<a class="sourceLine" id="cb9-107" title="107"><span class="co">#&gt;    Data: d</span></a>
-<a class="sourceLine" id="cb9-108" title="108"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-109" title="109"><span class="co">#&gt; REML criterion at convergence: 46359.6</span></a>
-<a class="sourceLine" id="cb9-110" title="110"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-111" title="111"><span class="co">#&gt; Scaled residuals: </span></a>
-<a class="sourceLine" id="cb9-112" title="112"><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></a>
-<a class="sourceLine" id="cb9-113" title="113"><span class="co">#&gt; -3.2097 -0.7245  0.0341  0.7595  2.9047 </span></a>
-<a class="sourceLine" id="cb9-114" title="114"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-115" title="115"><span class="co">#&gt; Random effects:</span></a>
-<a class="sourceLine" id="cb9-116" title="116"><span class="co">#&gt;  Groups   Name        Variance Std.Dev. Corr </span></a>
-<a class="sourceLine" id="cb9-117" title="117"><span class="co">#&gt;  schid    (Intercept)  2.3002  1.5166        </span></a>
-<a class="sourceLine" id="cb9-118" title="118"><span class="co">#&gt;           ses          0.4605  0.6786   -0.51</span></a>
-<a class="sourceLine" id="cb9-119" title="119"><span class="co">#&gt;  Residual             35.8664  5.9889        </span></a>
-<a class="sourceLine" id="cb9-120" title="120"><span class="co">#&gt; Number of obs: 7185, groups:  schid, 160</span></a>
-<a class="sourceLine" id="cb9-121" title="121"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-122" title="122"><span class="co">#&gt; Fixed effects:</span></a>
-<a class="sourceLine" id="cb9-123" title="123"><span class="co">#&gt;             Estimate Std. Error t value</span></a>
-<a class="sourceLine" id="cb9-124" title="124"><span class="co">#&gt; (Intercept)  13.9611     0.1729  80.758</span></a>
-<a class="sourceLine" id="cb9-125" title="125"><span class="co">#&gt; minority     -2.4274     0.1981 -12.251</span></a>
-<a class="sourceLine" id="cb9-126" title="126"><span class="co">#&gt; female       -1.2301     0.1584  -7.765</span></a>
-<a class="sourceLine" id="cb9-127" title="127"><span class="co">#&gt; ses           1.9276     0.1213  15.895</span></a>
-<a class="sourceLine" id="cb9-128" title="128"><span class="co">#&gt; meanses       3.2456     0.3574   9.082</span></a>
-<a class="sourceLine" id="cb9-129" title="129"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-130" title="130"><span class="co">#&gt; Correlation of Fixed Effects:</span></a>
-<a class="sourceLine" id="cb9-131" title="131"><span class="co">#&gt;          (Intr) minrty female ses   </span></a>
-<a class="sourceLine" id="cb9-132" title="132"><span class="co">#&gt; minority -0.317                     </span></a>
-<a class="sourceLine" id="cb9-133" title="133"><span class="co">#&gt; female   -0.481  0.010              </span></a>
-<a class="sourceLine" id="cb9-134" title="134"><span class="co">#&gt; ses      -0.219  0.140  0.037       </span></a>
-<a class="sourceLine" id="cb9-135" title="135"><span class="co">#&gt; meanses  -0.095  0.121  0.022 -0.233</span></a>
-<a class="sourceLine" id="cb9-136" title="136"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-137" title="137"><span class="co">#&gt; $imp5</span></a>
-<a class="sourceLine" id="cb9-138" title="138"><span class="co">#&gt; Linear mixed model fit by REML [&#39;lmerMod&#39;]</span></a>
-<a class="sourceLine" id="cb9-139" title="139"><span class="co">#&gt; Formula: mathach ~ minority + female + ses + meanses + (1 + ses | schid)</span></a>
-<a class="sourceLine" id="cb9-140" title="140"><span class="co">#&gt;    Data: d</span></a>
-<a class="sourceLine" id="cb9-141" title="141"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-142" title="142"><span class="co">#&gt; REML criterion at convergence: 46360.4</span></a>
-<a class="sourceLine" id="cb9-143" title="143"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-144" title="144"><span class="co">#&gt; Scaled residuals: </span></a>
-<a class="sourceLine" id="cb9-145" title="145"><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></a>
-<a class="sourceLine" id="cb9-146" title="146"><span class="co">#&gt; -3.2003 -0.7248  0.0339  0.7606  2.9253 </span></a>
-<a class="sourceLine" id="cb9-147" title="147"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-148" title="148"><span class="co">#&gt; Random effects:</span></a>
-<a class="sourceLine" id="cb9-149" title="149"><span class="co">#&gt;  Groups   Name        Variance Std.Dev. Corr </span></a>
-<a class="sourceLine" id="cb9-150" title="150"><span class="co">#&gt;  schid    (Intercept)  2.3192  1.5229        </span></a>
-<a class="sourceLine" id="cb9-151" title="151"><span class="co">#&gt;           ses          0.4721  0.6871   -0.54</span></a>
-<a class="sourceLine" id="cb9-152" title="152"><span class="co">#&gt;  Residual             35.8665  5.9889        </span></a>
-<a class="sourceLine" id="cb9-153" title="153"><span class="co">#&gt; Number of obs: 7185, groups:  schid, 160</span></a>
-<a class="sourceLine" id="cb9-154" title="154"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-155" title="155"><span class="co">#&gt; Fixed effects:</span></a>
-<a class="sourceLine" id="cb9-156" title="156"><span class="co">#&gt;             Estimate Std. Error t value</span></a>
-<a class="sourceLine" id="cb9-157" title="157"><span class="co">#&gt; (Intercept)  13.9635     0.1735  80.473</span></a>
-<a class="sourceLine" id="cb9-158" title="158"><span class="co">#&gt; minority     -2.5255     0.1980 -12.756</span></a>
-<a class="sourceLine" id="cb9-159" title="159"><span class="co">#&gt; female       -1.1876     0.1589  -7.472</span></a>
-<a class="sourceLine" id="cb9-160" title="160"><span class="co">#&gt; ses           1.8948     0.1212  15.637</span></a>
-<a class="sourceLine" id="cb9-161" title="161"><span class="co">#&gt; meanses       3.2880     0.3568   9.216</span></a>
-<a class="sourceLine" id="cb9-162" title="162"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb9-163" title="163"><span class="co">#&gt; Correlation of Fixed Effects:</span></a>
-<a class="sourceLine" id="cb9-164" title="164"><span class="co">#&gt;          (Intr) minrty female ses   </span></a>
-<a class="sourceLine" id="cb9-165" title="165"><span class="co">#&gt; minority -0.319                     </span></a>
-<a class="sourceLine" id="cb9-166" title="166"><span class="co">#&gt; female   -0.483  0.016              </span></a>
-<a class="sourceLine" id="cb9-167" title="167"><span class="co">#&gt; ses      -0.233  0.138  0.043       </span></a>
-<a class="sourceLine" id="cb9-168" title="168"><span class="co">#&gt; meanses  -0.097  0.118  0.023 -0.231</span></a></code></pre></div>
+<a class="sourceLine" id="cb9-63" title="63"><span class="co">#&gt; minority -0.326                     </span></a>
+<a class="sourceLine" id="cb9-64" title="64"><span class="co">#&gt; female   -0.482  0.019              </span></a>
+<a class="sourceLine" id="cb9-65" title="65"><span class="co">#&gt; ses      -0.204  0.140  0.038       </span></a>
+<a class="sourceLine" id="cb9-66" title="66"><span class="co">#&gt; meanses  -0.094  0.127  0.023 -0.231</span></a>
+<a class="sourceLine" id="cb9-67" title="67"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb9-68" title="68"><span class="co">#&gt; $imp3</span></a>
+<a class="sourceLine" id="cb9-69" title="69"><span class="co">#&gt; Linear mixed model fit by REML [&#39;lmerMod&#39;]</span></a>
+<a class="sourceLine" id="cb9-70" title="70"><span class="co">#&gt; Formula: mathach ~ minority + female + ses + meanses + (1 + ses | schid)</span></a>
+<a class="sourceLine" id="cb9-71" title="71"><span class="co">#&gt;    Data: d</span></a>
+<a class="sourceLine" id="cb9-72" title="72"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb9-73" title="73"><span class="co">#&gt; REML criterion at convergence: 46302.4</span></a>
+<a class="sourceLine" id="cb9-74" title="74"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb9-75" title="75"><span class="co">#&gt; Scaled residuals: </span></a>
+<a class="sourceLine" id="cb9-76" title="76"><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></a>
+<a class="sourceLine" id="cb9-77" title="77"><span class="co">#&gt; -3.2651 -0.7164  0.0325  0.7615  2.9216 </span></a>
+<a class="sourceLine" id="cb9-78" title="78"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb9-79" title="79"><span class="co">#&gt; Random effects:</span></a>
+<a class="sourceLine" id="cb9-80" title="80"><span class="co">#&gt;  Groups   Name        Variance Std.Dev. Corr </span></a>
+<a class="sourceLine" id="cb9-81" title="81"><span class="co">#&gt;  schid    (Intercept)  2.3422  1.5304        </span></a>
+<a class="sourceLine" id="cb9-82" title="82"><span class="co">#&gt;           ses          0.4413  0.6643   -0.46</span></a>
+<a class="sourceLine" id="cb9-83" title="83"><span class="co">#&gt;  Residual             35.5652  5.9637        </span></a>
+<a class="sourceLine" id="cb9-84" title="84"><span class="co">#&gt; Number of obs: 7185, groups:  schid, 160</span></a>
+<a class="sourceLine" id="cb9-85" title="85"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb9-86" title="86"><span class="co">#&gt; Fixed effects:</span></a>
+<a class="sourceLine" id="cb9-87" title="87"><span class="co">#&gt;             Estimate Std. Error t value</span></a>
+<a class="sourceLine" id="cb9-88" title="88"><span class="co">#&gt; (Intercept)  14.0405     0.1738  80.763</span></a>
+<a class="sourceLine" id="cb9-89" title="89"><span class="co">#&gt; minority     -2.7284     0.1990 -13.709</span></a>
+<a class="sourceLine" id="cb9-90" title="90"><span class="co">#&gt; female       -1.2155     0.1578  -7.702</span></a>
+<a class="sourceLine" id="cb9-91" title="91"><span class="co">#&gt; ses           1.9583     0.1198  16.345</span></a>
+<a class="sourceLine" id="cb9-92" title="92"><span class="co">#&gt; meanses       3.1347     0.3595   8.719</span></a>
+<a class="sourceLine" id="cb9-93" title="93"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb9-94" title="94"><span class="co">#&gt; Correlation of Fixed Effects:</span></a>
+<a class="sourceLine" id="cb9-95" title="95"><span class="co">#&gt;          (Intr) minrty female ses   </span></a>
+<a class="sourceLine" id="cb9-96" title="96"><span class="co">#&gt; minority -0.325                     </span></a>
+<a class="sourceLine" id="cb9-97" title="97"><span class="co">#&gt; female   -0.481  0.022              </span></a>
+<a class="sourceLine" id="cb9-98" title="98"><span class="co">#&gt; ses      -0.209  0.143  0.044       </span></a>
+<a class="sourceLine" id="cb9-99" title="99"><span class="co">#&gt; meanses  -0.092  0.126  0.021 -0.226</span></a>
+<a class="sourceLine" id="cb9-100" title="100"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb9-101" title="101"><span class="co">#&gt; $imp4</span></a>
+<a class="sourceLine" id="cb9-102" title="102"><span class="co">#&gt; Linear mixed model fit by REML [&#39;lmerMod&#39;]</span></a>
+<a class="sourceLine" id="cb9-103" title="103"><span class="co">#&gt; Formula: mathach ~ minority + female + ses + meanses + (1 + ses | schid)</span></a>
+<a class="sourceLine" id="cb9-104" title="104"><span class="co">#&gt;    Data: d</span></a>
+<a class="sourceLine" id="cb9-105" title="105"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb9-106" title="106"><span class="co">#&gt; REML criterion at convergence: 46302</span></a>
+<a class="sourceLine" id="cb9-107" title="107"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb9-108" title="108"><span class="co">#&gt; Scaled residuals: </span></a>
+<a class="sourceLine" id="cb9-109" title="109"><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></a>
+<a class="sourceLine" id="cb9-110" title="110"><span class="co">#&gt; -3.2610 -0.7229  0.0305  0.7612  2.9166 </span></a>
+<a class="sourceLine" id="cb9-111" title="111"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb9-112" title="112"><span class="co">#&gt; Random effects:</span></a>
+<a class="sourceLine" id="cb9-113" title="113"><span class="co">#&gt;  Groups   Name        Variance Std.Dev. Corr </span></a>
+<a class="sourceLine" id="cb9-114" title="114"><span class="co">#&gt;  schid    (Intercept)  2.3036  1.5178        </span></a>
+<a class="sourceLine" id="cb9-115" title="115"><span class="co">#&gt;           ses          0.3951  0.6286   -0.62</span></a>
+<a class="sourceLine" id="cb9-116" title="116"><span class="co">#&gt;  Residual             35.6111  5.9675        </span></a>
+<a class="sourceLine" id="cb9-117" title="117"><span class="co">#&gt; Number of obs: 7185, groups:  schid, 160</span></a>
+<a class="sourceLine" id="cb9-118" title="118"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb9-119" title="119"><span class="co">#&gt; Fixed effects:</span></a>
+<a class="sourceLine" id="cb9-120" title="120"><span class="co">#&gt;             Estimate Std. Error t value</span></a>
+<a class="sourceLine" id="cb9-121" title="121"><span class="co">#&gt; (Intercept)  14.0302     0.1728  81.179</span></a>
+<a class="sourceLine" id="cb9-122" title="122"><span class="co">#&gt; minority     -2.6986     0.1985 -13.592</span></a>
+<a class="sourceLine" id="cb9-123" title="123"><span class="co">#&gt; female       -1.2147     0.1573  -7.721</span></a>
+<a class="sourceLine" id="cb9-124" title="124"><span class="co">#&gt; ses           1.9973     0.1190  16.784</span></a>
+<a class="sourceLine" id="cb9-125" title="125"><span class="co">#&gt; meanses       3.0811     0.3544   8.693</span></a>
+<a class="sourceLine" id="cb9-126" title="126"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb9-127" title="127"><span class="co">#&gt; Correlation of Fixed Effects:</span></a>
+<a class="sourceLine" id="cb9-128" title="128"><span class="co">#&gt;          (Intr) minrty female ses   </span></a>
+<a class="sourceLine" id="cb9-129" title="129"><span class="co">#&gt; minority -0.326                     </span></a>
+<a class="sourceLine" id="cb9-130" title="130"><span class="co">#&gt; female   -0.481  0.021              </span></a>
+<a class="sourceLine" id="cb9-131" title="131"><span class="co">#&gt; ses      -0.246  0.140  0.040       </span></a>
+<a class="sourceLine" id="cb9-132" title="132"><span class="co">#&gt; meanses  -0.104  0.126  0.023 -0.235</span></a>
+<a class="sourceLine" id="cb9-133" title="133"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb9-134" title="134"><span class="co">#&gt; $imp5</span></a>
+<a class="sourceLine" id="cb9-135" title="135"><span class="co">#&gt; Linear mixed model fit by REML [&#39;lmerMod&#39;]</span></a>
+<a class="sourceLine" id="cb9-136" title="136"><span class="co">#&gt; Formula: mathach ~ minority + female + ses + meanses + (1 + ses | schid)</span></a>
+<a class="sourceLine" id="cb9-137" title="137"><span class="co">#&gt;    Data: d</span></a>
+<a class="sourceLine" id="cb9-138" title="138"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb9-139" title="139"><span class="co">#&gt; REML criterion at convergence: 46324.3</span></a>
+<a class="sourceLine" id="cb9-140" title="140"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb9-141" title="141"><span class="co">#&gt; Scaled residuals: </span></a>
+<a class="sourceLine" id="cb9-142" title="142"><span class="co">#&gt;     Min      1Q  Median      3Q     Max </span></a>
+<a class="sourceLine" id="cb9-143" title="143"><span class="co">#&gt; -3.2703 -0.7181  0.0316  0.7649  2.9098 </span></a>
+<a class="sourceLine" id="cb9-144" title="144"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb9-145" title="145"><span class="co">#&gt; Random effects:</span></a>
+<a class="sourceLine" id="cb9-146" title="146"><span class="co">#&gt;  Groups   Name        Variance Std.Dev. Corr </span></a>
+<a class="sourceLine" id="cb9-147" title="147"><span class="co">#&gt;  schid    (Intercept)  2.3200  1.5231        </span></a>
+<a class="sourceLine" id="cb9-148" title="148"><span class="co">#&gt;           ses          0.4484  0.6696   -0.46</span></a>
+<a class="sourceLine" id="cb9-149" title="149"><span class="co">#&gt;  Residual             35.6782  5.9731        </span></a>
+<a class="sourceLine" id="cb9-150" title="150"><span class="co">#&gt; Number of obs: 7185, groups:  schid, 160</span></a>
+<a class="sourceLine" id="cb9-151" title="151"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb9-152" title="152"><span class="co">#&gt; Fixed effects:</span></a>
+<a class="sourceLine" id="cb9-153" title="153"><span class="co">#&gt;             Estimate Std. Error t value</span></a>
+<a class="sourceLine" id="cb9-154" title="154"><span class="co">#&gt; (Intercept)  14.0262     0.1734  80.890</span></a>
+<a class="sourceLine" id="cb9-155" title="155"><span class="co">#&gt; minority     -2.7136     0.1982 -13.689</span></a>
+<a class="sourceLine" id="cb9-156" title="156"><span class="co">#&gt; female       -1.1700     0.1577  -7.417</span></a>
+<a class="sourceLine" id="cb9-157" title="157"><span class="co">#&gt; ses           1.9339     0.1204  16.060</span></a>
+<a class="sourceLine" id="cb9-158" title="158"><span class="co">#&gt; meanses       3.1775     0.3594   8.842</span></a>
+<a class="sourceLine" id="cb9-159" title="159"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb9-160" title="160"><span class="co">#&gt; Correlation of Fixed Effects:</span></a>
+<a class="sourceLine" id="cb9-161" title="161"><span class="co">#&gt;          (Intr) minrty female ses   </span></a>
+<a class="sourceLine" id="cb9-162" title="162"><span class="co">#&gt; minority -0.329                     </span></a>
+<a class="sourceLine" id="cb9-163" title="163"><span class="co">#&gt; female   -0.480  0.026              </span></a>
+<a class="sourceLine" id="cb9-164" title="164"><span class="co">#&gt; ses      -0.200  0.141  0.036       </span></a>
+<a class="sourceLine" id="cb9-165" title="165"><span class="co">#&gt; meanses  -0.095  0.126  0.026 -0.228</span></a></code></pre></div>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb10-1" title="1"><span class="kw">summary</span>(modList)</a>
-<a class="sourceLine" id="cb10-2" title="2"><span class="co">#&gt; Warning in modelFixedEff(modList): Between imputation variance is very</span></a>
-<a class="sourceLine" id="cb10-3" title="3"><span class="co">#&gt; small, are imputation sets too similar?</span></a>
-<a class="sourceLine" id="cb10-4" title="4"><span class="co">#&gt; [1] &quot;Linear mixed model fit by REML&quot;</span></a>
-<a class="sourceLine" id="cb10-5" title="5"><span class="co">#&gt; Model family: </span></a>
-<a class="sourceLine" id="cb10-6" title="6"><span class="co">#&gt; lmer(formula = mathach ~ minority + female + ses + meanses + </span></a>
-<a class="sourceLine" id="cb10-7" title="7"><span class="co">#&gt;     (1 + ses | schid), data = d)</span></a>
-<a class="sourceLine" id="cb10-8" title="8"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb10-9" title="9"><span class="co">#&gt; Fixed Effects:</span></a>
-<a class="sourceLine" id="cb10-10" title="10"><span class="co">#&gt;             estimate std.error statistic           df</span></a>
-<a class="sourceLine" id="cb10-11" title="11"><span class="co">#&gt; (Intercept)   13.965     0.174    80.476 2.178458e+09</span></a>
-<a class="sourceLine" id="cb10-12" title="12"><span class="co">#&gt; female        -1.197     0.159    -7.525 4.567037e+05</span></a>
-<a class="sourceLine" id="cb10-13" title="13"><span class="co">#&gt; meanses        3.219     0.361     8.910 1.078433e+05</span></a>
-<a class="sourceLine" id="cb10-14" title="14"><span class="co">#&gt; minority      -2.502     0.201   -12.425 2.002493e+04</span></a>
-<a class="sourceLine" id="cb10-15" title="15"><span class="co">#&gt; ses            1.931     0.121    15.922 2.337436e+05</span></a>
+<a class="sourceLine" id="cb10-2" title="2"><span class="co">#&gt; [1] &quot;Linear mixed model fit by REML&quot;</span></a>
+<a class="sourceLine" id="cb10-3" title="3"><span class="co">#&gt; Model family: </span></a>
+<a class="sourceLine" id="cb10-4" title="4"><span class="co">#&gt; lmer(formula = mathach ~ minority + female + ses + meanses + </span></a>
+<a class="sourceLine" id="cb10-5" title="5"><span class="co">#&gt;     (1 + ses | schid), data = d)</span></a>
+<a class="sourceLine" id="cb10-6" title="6"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb10-7" title="7"><span class="co">#&gt; Fixed Effects:</span></a>
+<a class="sourceLine" id="cb10-8" title="8"><span class="co">#&gt;             estimate std.error statistic         df</span></a>
+<a class="sourceLine" id="cb10-9" title="9"><span class="co">#&gt; (Intercept)   14.029     0.174    80.566  99310.593</span></a>
+<a class="sourceLine" id="cb10-10" title="10"><span class="co">#&gt; female        -1.213     0.160    -7.574  16493.051</span></a>
+<a class="sourceLine" id="cb10-11" title="11"><span class="co">#&gt; meanses        3.142     0.358     8.769 259740.570</span></a>
+<a class="sourceLine" id="cb10-12" title="12"><span class="co">#&gt; minority      -2.680     0.202   -13.289  18540.839</span></a>
+<a class="sourceLine" id="cb10-13" title="13"><span class="co">#&gt; ses            1.967     0.120    16.372 166028.049</span></a>
+<a class="sourceLine" id="cb10-14" title="14"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb10-15" title="15"><span class="co">#&gt; Random Effects:</span></a>
 <a class="sourceLine" id="cb10-16" title="16"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb10-17" title="17"><span class="co">#&gt; Random Effects:</span></a>
+<a class="sourceLine" id="cb10-17" title="17"><span class="co">#&gt; Error Term Standard Deviations by Level:</span></a>
 <a class="sourceLine" id="cb10-18" title="18"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb10-19" title="19"><span class="co">#&gt; Error Term Standard Deviations by Level:</span></a>
-<a class="sourceLine" id="cb10-20" title="20"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb10-21" title="21"><span class="co">#&gt; schid</span></a>
-<a class="sourceLine" id="cb10-22" title="22"><span class="co">#&gt; (Intercept)         ses </span></a>
-<a class="sourceLine" id="cb10-23" title="23"><span class="co">#&gt;       1.525       0.671 </span></a>
-<a class="sourceLine" id="cb10-24" title="24"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb10-19" title="19"><span class="co">#&gt; schid</span></a>
+<a class="sourceLine" id="cb10-20" title="20"><span class="co">#&gt; (Intercept)         ses </span></a>
+<a class="sourceLine" id="cb10-21" title="21"><span class="co">#&gt;       1.518       0.647 </span></a>
+<a class="sourceLine" id="cb10-22" title="22"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb10-23" title="23"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb10-24" title="24"><span class="co">#&gt; Error Term Correlations:</span></a>
 <a class="sourceLine" id="cb10-25" title="25"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb10-26" title="26"><span class="co">#&gt; Error Term Correlations:</span></a>
-<a class="sourceLine" id="cb10-27" title="27"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb10-28" title="28"><span class="co">#&gt; schid</span></a>
-<a class="sourceLine" id="cb10-29" title="29"><span class="co">#&gt;             (Intercept) ses   </span></a>
-<a class="sourceLine" id="cb10-30" title="30"><span class="co">#&gt; (Intercept)  1.000      -0.494</span></a>
-<a class="sourceLine" id="cb10-31" title="31"><span class="co">#&gt; ses         -0.494       1.000</span></a>
-<a class="sourceLine" id="cb10-32" title="32"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb10-26" title="26"><span class="co">#&gt; schid</span></a>
+<a class="sourceLine" id="cb10-27" title="27"><span class="co">#&gt;             (Intercept) ses   </span></a>
+<a class="sourceLine" id="cb10-28" title="28"><span class="co">#&gt; (Intercept)  1.000      -0.525</span></a>
+<a class="sourceLine" id="cb10-29" title="29"><span class="co">#&gt; ses         -0.525       1.000</span></a>
+<a class="sourceLine" id="cb10-30" title="30"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb10-31" title="31"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb10-32" title="32"><span class="co">#&gt; Residual Error = 5.970 </span></a>
 <a class="sourceLine" id="cb10-33" title="33"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb10-34" title="34"><span class="co">#&gt; Residual Error = 5.985 </span></a>
-<a class="sourceLine" id="cb10-35" title="35"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb10-36" title="36"><span class="co">#&gt; ---Groups</span></a>
-<a class="sourceLine" id="cb10-37" title="37"><span class="co">#&gt; number of obs: 7185, groups: schid, 160</span></a>
-<a class="sourceLine" id="cb10-38" title="38"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb10-39" title="39"><span class="co">#&gt; Model Fit Stats</span></a>
-<a class="sourceLine" id="cb10-40" title="40"><span class="co">#&gt; AIC = 46369.8</span></a>
-<a class="sourceLine" id="cb10-41" title="41"><span class="co">#&gt; Residual standard deviation = 5.985</span></a></code></pre></div>
+<a class="sourceLine" id="cb10-34" title="34"><span class="co">#&gt; ---Groups</span></a>
+<a class="sourceLine" id="cb10-35" title="35"><span class="co">#&gt; number of obs: 7185, groups: schid, 160</span></a>
+<a class="sourceLine" id="cb10-36" title="36"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb10-37" title="37"><span class="co">#&gt; Model Fit Stats</span></a>
+<a class="sourceLine" id="cb10-38" title="38"><span class="co">#&gt; AIC = 46331.1</span></a>
+<a class="sourceLine" id="cb10-39" title="39"><span class="co">#&gt; Residual standard deviation = 5.970</span></a></code></pre></div>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" title="1"><span class="kw">fastdisp</span>(modList)</a>
-<a class="sourceLine" id="cb11-2" title="2"><span class="co">#&gt; Warning in modelFixedEff(x): Between imputation variance is very small, are</span></a>
-<a class="sourceLine" id="cb11-3" title="3"><span class="co">#&gt; imputation sets too similar?</span></a>
-<a class="sourceLine" id="cb11-4" title="4"><span class="co">#&gt; lmer(formula = mathach ~ minority + female + ses + meanses + </span></a>
-<a class="sourceLine" id="cb11-5" title="5"><span class="co">#&gt;     (1 + ses | schid), data = d)</span></a>
-<a class="sourceLine" id="cb11-6" title="6"><span class="co">#&gt;             estimate std.error</span></a>
-<a class="sourceLine" id="cb11-7" title="7"><span class="co">#&gt; (Intercept)    13.96      0.17</span></a>
-<a class="sourceLine" id="cb11-8" title="8"><span class="co">#&gt; female         -1.20      0.16</span></a>
-<a class="sourceLine" id="cb11-9" title="9"><span class="co">#&gt; meanses         3.22      0.36</span></a>
-<a class="sourceLine" id="cb11-10" title="10"><span class="co">#&gt; minority       -2.50      0.20</span></a>
-<a class="sourceLine" id="cb11-11" title="11"><span class="co">#&gt; ses             1.93      0.12</span></a>
-<a class="sourceLine" id="cb11-12" title="12"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb11-13" title="13"><span class="co">#&gt; Error terms:</span></a>
-<a class="sourceLine" id="cb11-14" title="14"><span class="co">#&gt;  Groups   Name        Std.Dev. Corr  </span></a>
-<a class="sourceLine" id="cb11-15" title="15"><span class="co">#&gt;  schid    (Intercept) 1.53           </span></a>
-<a class="sourceLine" id="cb11-16" title="16"><span class="co">#&gt;           ses         0.67     -0.45 </span></a>
-<a class="sourceLine" id="cb11-17" title="17"><span class="co">#&gt;  Residual             5.99           </span></a>
-<a class="sourceLine" id="cb11-18" title="18"><span class="co">#&gt; ---</span></a>
-<a class="sourceLine" id="cb11-19" title="19"><span class="co">#&gt; number of obs: 7185, groups: schid, 160</span></a>
-<a class="sourceLine" id="cb11-20" title="20"><span class="co">#&gt; AIC = 46369.8---</span></a></code></pre></div>
+<a class="sourceLine" id="cb11-2" title="2"><span class="co">#&gt; lmer(formula = mathach ~ minority + female + ses + meanses + </span></a>
+<a class="sourceLine" id="cb11-3" title="3"><span class="co">#&gt;     (1 + ses | schid), data = d)</span></a>
+<a class="sourceLine" id="cb11-4" title="4"><span class="co">#&gt;             estimate std.error</span></a>
+<a class="sourceLine" id="cb11-5" title="5"><span class="co">#&gt; (Intercept)    14.03      0.17</span></a>
+<a class="sourceLine" id="cb11-6" title="6"><span class="co">#&gt; female         -1.21      0.16</span></a>
+<a class="sourceLine" id="cb11-7" title="7"><span class="co">#&gt; meanses         3.14      0.36</span></a>
+<a class="sourceLine" id="cb11-8" title="8"><span class="co">#&gt; minority       -2.68      0.20</span></a>
+<a class="sourceLine" id="cb11-9" title="9"><span class="co">#&gt; ses             1.97      0.12</span></a>
+<a class="sourceLine" id="cb11-10" title="10"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb11-11" title="11"><span class="co">#&gt; Error terms:</span></a>
+<a class="sourceLine" id="cb11-12" title="12"><span class="co">#&gt;  Groups   Name        Std.Dev. Corr  </span></a>
+<a class="sourceLine" id="cb11-13" title="13"><span class="co">#&gt;  schid    (Intercept) 1.52           </span></a>
+<a class="sourceLine" id="cb11-14" title="14"><span class="co">#&gt;           ses         0.65     -0.61 </span></a>
+<a class="sourceLine" id="cb11-15" title="15"><span class="co">#&gt;  Residual             5.97           </span></a>
+<a class="sourceLine" id="cb11-16" title="16"><span class="co">#&gt; ---</span></a>
+<a class="sourceLine" id="cb11-17" title="17"><span class="co">#&gt; number of obs: 7185, groups: schid, 160</span></a>
+<a class="sourceLine" id="cb11-18" title="18"><span class="co">#&gt; AIC = 46331.1---</span></a></code></pre></div>
 <p>The standard errors reported for the model list include a correction, Rubin’s correction (see documentation), which adjusts for the within and between imputation set variance as well.</p>
 </div>
 <div id="specific-model-information-summaries" class="section level2">
 <h2>Specific Model Information Summaries</h2>
 <div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb12-1" title="1"><span class="kw">modelRandEffStats</span>(modList)</a>
 <a class="sourceLine" id="cb12-2" title="2"><span class="co">#&gt;                        term    group   estimate   std.error</span></a>
-<a class="sourceLine" id="cb12-3" title="3"><span class="co">#&gt; 1 cor_(Intercept).ses.schid    schid -0.4937870 0.040228230</span></a>
-<a class="sourceLine" id="cb12-4" title="4"><span class="co">#&gt; 2      sd_(Intercept).schid    schid  1.5252886 0.006762784</span></a>
-<a class="sourceLine" id="cb12-5" title="5"><span class="co">#&gt; 3   sd_Observation.Residual Residual  5.9850808 0.004875255</span></a>
-<a class="sourceLine" id="cb12-6" title="6"><span class="co">#&gt; 4              sd_ses.schid    schid  0.6712887 0.026988611</span></a>
+<a class="sourceLine" id="cb12-3" title="3"><span class="co">#&gt; 1 cor_(Intercept).ses.schid    schid -0.5247666 0.084101895</span></a>
+<a class="sourceLine" id="cb12-4" title="4"><span class="co">#&gt; 2      sd_(Intercept).schid    schid  1.5183804 0.008713530</span></a>
+<a class="sourceLine" id="cb12-5" title="5"><span class="co">#&gt; 3   sd_Observation.Residual Residual  5.9703034 0.006244066</span></a>
+<a class="sourceLine" id="cb12-6" title="6"><span class="co">#&gt; 4              sd_ses.schid    schid  0.6468874 0.028062351</span></a>
 <a class="sourceLine" id="cb12-7" title="7"><span class="kw">modelFixedEff</span>(modList)</a>
-<a class="sourceLine" id="cb12-8" title="8"><span class="co">#&gt; Warning in modelFixedEff(modList): Between imputation variance is very</span></a>
-<a class="sourceLine" id="cb12-9" title="9"><span class="co">#&gt; small, are imputation sets too similar?</span></a>
-<a class="sourceLine" id="cb12-10" title="10"><span class="co">#&gt;          term  estimate std.error  statistic           df</span></a>
-<a class="sourceLine" id="cb12-11" title="11"><span class="co">#&gt; 1 (Intercept) 13.964580 0.1735254  80.475705 2.178458e+09</span></a>
-<a class="sourceLine" id="cb12-12" title="12"><span class="co">#&gt; 2      female -1.197021 0.1590628  -7.525465 4.567037e+05</span></a>
-<a class="sourceLine" id="cb12-13" title="13"><span class="co">#&gt; 3     meanses  3.218819 0.3612399   8.910476 1.078433e+05</span></a>
-<a class="sourceLine" id="cb12-14" title="14"><span class="co">#&gt; 4    minority -2.501642 0.2013395 -12.424990 2.002493e+04</span></a>
-<a class="sourceLine" id="cb12-15" title="15"><span class="co">#&gt; 5         ses  1.930981 0.1212754  15.922281 2.337436e+05</span></a>
-<a class="sourceLine" id="cb12-16" title="16"><span class="kw">VarCorr</span>(modList)</a>
-<a class="sourceLine" id="cb12-17" title="17"><span class="co">#&gt; $stddev</span></a>
-<a class="sourceLine" id="cb12-18" title="18"><span class="co">#&gt; $stddev$schid</span></a>
-<a class="sourceLine" id="cb12-19" title="19"><span class="co">#&gt; (Intercept)         ses </span></a>
-<a class="sourceLine" id="cb12-20" title="20"><span class="co">#&gt;   1.5252886   0.6712887 </span></a>
-<a class="sourceLine" id="cb12-21" title="21"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb12-22" title="22"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb12-23" title="23"><span class="co">#&gt; $correlation</span></a>
-<a class="sourceLine" id="cb12-24" title="24"><span class="co">#&gt; $correlation$schid</span></a>
-<a class="sourceLine" id="cb12-25" title="25"><span class="co">#&gt;             (Intercept)       ses</span></a>
-<a class="sourceLine" id="cb12-26" title="26"><span class="co">#&gt; (Intercept)    1.000000 -0.493787</span></a>
-<a class="sourceLine" id="cb12-27" title="27"><span class="co">#&gt; ses           -0.493787  1.000000</span></a></code></pre></div>
+<a class="sourceLine" id="cb12-8" title="8"><span class="co">#&gt;          term  estimate std.error  statistic        df</span></a>
+<a class="sourceLine" id="cb12-9" title="9"><span class="co">#&gt; 1 (Intercept) 14.028792 0.1741275  80.566201  99310.59</span></a>
+<a class="sourceLine" id="cb12-10" title="10"><span class="co">#&gt; 2      female -1.213086 0.1601572  -7.574345  16493.05</span></a>
+<a class="sourceLine" id="cb12-11" title="11"><span class="co">#&gt; 3     meanses  3.141636 0.3582833   8.768580 259740.57</span></a>
+<a class="sourceLine" id="cb12-12" title="12"><span class="co">#&gt; 4    minority -2.680352 0.2017037 -13.288566  18540.84</span></a>
+<a class="sourceLine" id="cb12-13" title="13"><span class="co">#&gt; 5         ses  1.966725 0.1201239  16.372467 166028.05</span></a>
+<a class="sourceLine" id="cb12-14" title="14"><span class="kw">VarCorr</span>(modList)</a>
+<a class="sourceLine" id="cb12-15" title="15"><span class="co">#&gt; $stddev</span></a>
+<a class="sourceLine" id="cb12-16" title="16"><span class="co">#&gt; $stddev$schid</span></a>
+<a class="sourceLine" id="cb12-17" title="17"><span class="co">#&gt; (Intercept)         ses </span></a>
+<a class="sourceLine" id="cb12-18" title="18"><span class="co">#&gt;   1.5183804   0.6468874 </span></a>
+<a class="sourceLine" id="cb12-19" title="19"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb12-20" title="20"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb12-21" title="21"><span class="co">#&gt; $correlation</span></a>
+<a class="sourceLine" id="cb12-22" title="22"><span class="co">#&gt; $correlation$schid</span></a>
+<a class="sourceLine" id="cb12-23" title="23"><span class="co">#&gt;             (Intercept)        ses</span></a>
+<a class="sourceLine" id="cb12-24" title="24"><span class="co">#&gt; (Intercept)   1.0000000 -0.5247666</span></a>
+<a class="sourceLine" id="cb12-25" title="25"><span class="co">#&gt; ses          -0.5247666  1.0000000</span></a></code></pre></div>
 <div id="diagnostics-of-list-components" class="section level3">
 <h3>Diagnostics of List Components</h3>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" title="1"><span class="kw">modelInfo</span>(mod)</a>
 <a class="sourceLine" id="cb13-2" title="2"><span class="co">#&gt;   n.obs n.lvls      AIC   sigma</span></a>
-<a class="sourceLine" id="cb13-3" title="3"><span class="co">#&gt; 1  6161      1 39813.18 6.00409</span></a></code></pre></div>
+<a class="sourceLine" id="cb13-3" title="3"><span class="co">#&gt; 1  6160      1 39764.15 5.98842</span></a></code></pre></div>
 <p>Let’s apply this to our model list.</p>
 <div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb14-1" title="1"><span class="kw">lapply</span>(modList, modelInfo)</a>
 <a class="sourceLine" id="cb14-2" title="2"><span class="co">#&gt; $imp1</span></a>
 <a class="sourceLine" id="cb14-3" title="3"><span class="co">#&gt;   n.obs n.lvls      AIC    sigma</span></a>
-<a class="sourceLine" id="cb14-4" title="4"><span class="co">#&gt; 1  7185      1 46359.69 5.980225</span></a>
+<a class="sourceLine" id="cb14-4" title="4"><span class="co">#&gt; 1  7185      1 46346.34 5.979699</span></a>
 <a class="sourceLine" id="cb14-5" title="5"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb14-6" title="6"><span class="co">#&gt; $imp2</span></a>
 <a class="sourceLine" id="cb14-7" title="7"><span class="co">#&gt;   n.obs n.lvls      AIC    sigma</span></a>
-<a class="sourceLine" id="cb14-8" title="8"><span class="co">#&gt; 1  7185      1 46372.89 5.988159</span></a>
+<a class="sourceLine" id="cb14-8" title="8"><span class="co">#&gt; 1  7185      1 46326.72 5.967532</span></a>
 <a class="sourceLine" id="cb14-9" title="9"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb14-10" title="10"><span class="co">#&gt; $imp3</span></a>
 <a class="sourceLine" id="cb14-11" title="11"><span class="co">#&gt;   n.obs n.lvls      AIC    sigma</span></a>
-<a class="sourceLine" id="cb14-12" title="12"><span class="co">#&gt; 1  7185      1 46360.52 5.979298</span></a>
+<a class="sourceLine" id="cb14-12" title="12"><span class="co">#&gt; 1  7185      1 46320.43 5.963655</span></a>
 <a class="sourceLine" id="cb14-13" title="13"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb14-14" title="14"><span class="co">#&gt; $imp4</span></a>
 <a class="sourceLine" id="cb14-15" title="15"><span class="co">#&gt;   n.obs n.lvls      AIC    sigma</span></a>
-<a class="sourceLine" id="cb14-16" title="16"><span class="co">#&gt; 1  7185      1 46377.55 5.988859</span></a>
+<a class="sourceLine" id="cb14-16" title="16"><span class="co">#&gt; 1  7185      1 46319.96 5.967506</span></a>
 <a class="sourceLine" id="cb14-17" title="17"><span class="co">#&gt; </span></a>
 <a class="sourceLine" id="cb14-18" title="18"><span class="co">#&gt; $imp5</span></a>
-<a class="sourceLine" id="cb14-19" title="19"><span class="co">#&gt;   n.obs n.lvls     AIC    sigma</span></a>
-<a class="sourceLine" id="cb14-20" title="20"><span class="co">#&gt; 1  7185      1 46378.4 5.988863</span></a></code></pre></div>
+<a class="sourceLine" id="cb14-19" title="19"><span class="co">#&gt;   n.obs n.lvls      AIC    sigma</span></a>
+<a class="sourceLine" id="cb14-20" title="20"><span class="co">#&gt; 1  7185      1 46342.27 5.973125</span></a></code></pre></div>
 </div>
 <div id="model-list-generics" class="section level3">
 <h3>Model List Generics</h3>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" title="1"><span class="kw">summary</span>(modList)</a>
-<a class="sourceLine" id="cb15-2" title="2"><span class="co">#&gt; Warning in modelFixedEff(modList): Between imputation variance is very</span></a>
-<a class="sourceLine" id="cb15-3" title="3"><span class="co">#&gt; small, are imputation sets too similar?</span></a>
-<a class="sourceLine" id="cb15-4" title="4"><span class="co">#&gt; [1] &quot;Linear mixed model fit by REML&quot;</span></a>
-<a class="sourceLine" id="cb15-5" title="5"><span class="co">#&gt; Model family: </span></a>
-<a class="sourceLine" id="cb15-6" title="6"><span class="co">#&gt; lmer(formula = mathach ~ minority + female + ses + meanses + </span></a>
-<a class="sourceLine" id="cb15-7" title="7"><span class="co">#&gt;     (1 + ses | schid), data = d)</span></a>
-<a class="sourceLine" id="cb15-8" title="8"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb15-9" title="9"><span class="co">#&gt; Fixed Effects:</span></a>
-<a class="sourceLine" id="cb15-10" title="10"><span class="co">#&gt;             estimate std.error statistic           df</span></a>
-<a class="sourceLine" id="cb15-11" title="11"><span class="co">#&gt; (Intercept)   13.965     0.174    80.476 2.178458e+09</span></a>
-<a class="sourceLine" id="cb15-12" title="12"><span class="co">#&gt; female        -1.197     0.159    -7.525 4.567037e+05</span></a>
-<a class="sourceLine" id="cb15-13" title="13"><span class="co">#&gt; meanses        3.219     0.361     8.910 1.078433e+05</span></a>
-<a class="sourceLine" id="cb15-14" title="14"><span class="co">#&gt; minority      -2.502     0.201   -12.425 2.002493e+04</span></a>
-<a class="sourceLine" id="cb15-15" title="15"><span class="co">#&gt; ses            1.931     0.121    15.922 2.337436e+05</span></a>
+<a class="sourceLine" id="cb15-2" title="2"><span class="co">#&gt; [1] &quot;Linear mixed model fit by REML&quot;</span></a>
+<a class="sourceLine" id="cb15-3" title="3"><span class="co">#&gt; Model family: </span></a>
+<a class="sourceLine" id="cb15-4" title="4"><span class="co">#&gt; lmer(formula = mathach ~ minority + female + ses + meanses + </span></a>
+<a class="sourceLine" id="cb15-5" title="5"><span class="co">#&gt;     (1 + ses | schid), data = d)</span></a>
+<a class="sourceLine" id="cb15-6" title="6"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb15-7" title="7"><span class="co">#&gt; Fixed Effects:</span></a>
+<a class="sourceLine" id="cb15-8" title="8"><span class="co">#&gt;             estimate std.error statistic         df</span></a>
+<a class="sourceLine" id="cb15-9" title="9"><span class="co">#&gt; (Intercept)   14.029     0.174    80.566  99310.593</span></a>
+<a class="sourceLine" id="cb15-10" title="10"><span class="co">#&gt; female        -1.213     0.160    -7.574  16493.051</span></a>
+<a class="sourceLine" id="cb15-11" title="11"><span class="co">#&gt; meanses        3.142     0.358     8.769 259740.570</span></a>
+<a class="sourceLine" id="cb15-12" title="12"><span class="co">#&gt; minority      -2.680     0.202   -13.289  18540.839</span></a>
+<a class="sourceLine" id="cb15-13" title="13"><span class="co">#&gt; ses            1.967     0.120    16.372 166028.049</span></a>
+<a class="sourceLine" id="cb15-14" title="14"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb15-15" title="15"><span class="co">#&gt; Random Effects:</span></a>
 <a class="sourceLine" id="cb15-16" title="16"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb15-17" title="17"><span class="co">#&gt; Random Effects:</span></a>
+<a class="sourceLine" id="cb15-17" title="17"><span class="co">#&gt; Error Term Standard Deviations by Level:</span></a>
 <a class="sourceLine" id="cb15-18" title="18"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb15-19" title="19"><span class="co">#&gt; Error Term Standard Deviations by Level:</span></a>
-<a class="sourceLine" id="cb15-20" title="20"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb15-21" title="21"><span class="co">#&gt; schid</span></a>
-<a class="sourceLine" id="cb15-22" title="22"><span class="co">#&gt; (Intercept)         ses </span></a>
-<a class="sourceLine" id="cb15-23" title="23"><span class="co">#&gt;       1.525       0.671 </span></a>
-<a class="sourceLine" id="cb15-24" title="24"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb15-19" title="19"><span class="co">#&gt; schid</span></a>
+<a class="sourceLine" id="cb15-20" title="20"><span class="co">#&gt; (Intercept)         ses </span></a>
+<a class="sourceLine" id="cb15-21" title="21"><span class="co">#&gt;       1.518       0.647 </span></a>
+<a class="sourceLine" id="cb15-22" title="22"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb15-23" title="23"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb15-24" title="24"><span class="co">#&gt; Error Term Correlations:</span></a>
 <a class="sourceLine" id="cb15-25" title="25"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb15-26" title="26"><span class="co">#&gt; Error Term Correlations:</span></a>
-<a class="sourceLine" id="cb15-27" title="27"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb15-28" title="28"><span class="co">#&gt; schid</span></a>
-<a class="sourceLine" id="cb15-29" title="29"><span class="co">#&gt;             (Intercept) ses   </span></a>
-<a class="sourceLine" id="cb15-30" title="30"><span class="co">#&gt; (Intercept)  1.000      -0.494</span></a>
-<a class="sourceLine" id="cb15-31" title="31"><span class="co">#&gt; ses         -0.494       1.000</span></a>
-<a class="sourceLine" id="cb15-32" title="32"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb15-26" title="26"><span class="co">#&gt; schid</span></a>
+<a class="sourceLine" id="cb15-27" title="27"><span class="co">#&gt;             (Intercept) ses   </span></a>
+<a class="sourceLine" id="cb15-28" title="28"><span class="co">#&gt; (Intercept)  1.000      -0.525</span></a>
+<a class="sourceLine" id="cb15-29" title="29"><span class="co">#&gt; ses         -0.525       1.000</span></a>
+<a class="sourceLine" id="cb15-30" title="30"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb15-31" title="31"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb15-32" title="32"><span class="co">#&gt; Residual Error = 5.970 </span></a>
 <a class="sourceLine" id="cb15-33" title="33"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb15-34" title="34"><span class="co">#&gt; Residual Error = 5.985 </span></a>
-<a class="sourceLine" id="cb15-35" title="35"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb15-36" title="36"><span class="co">#&gt; ---Groups</span></a>
-<a class="sourceLine" id="cb15-37" title="37"><span class="co">#&gt; number of obs: 7185, groups: schid, 160</span></a>
-<a class="sourceLine" id="cb15-38" title="38"><span class="co">#&gt; </span></a>
-<a class="sourceLine" id="cb15-39" title="39"><span class="co">#&gt; Model Fit Stats</span></a>
-<a class="sourceLine" id="cb15-40" title="40"><span class="co">#&gt; AIC = 46369.8</span></a>
-<a class="sourceLine" id="cb15-41" title="41"><span class="co">#&gt; Residual standard deviation = 5.985</span></a></code></pre></div>
+<a class="sourceLine" id="cb15-34" title="34"><span class="co">#&gt; ---Groups</span></a>
+<a class="sourceLine" id="cb15-35" title="35"><span class="co">#&gt; number of obs: 7185, groups: schid, 160</span></a>
+<a class="sourceLine" id="cb15-36" title="36"><span class="co">#&gt; </span></a>
+<a class="sourceLine" id="cb15-37" title="37"><span class="co">#&gt; Model Fit Stats</span></a>
+<a class="sourceLine" id="cb15-38" title="38"><span class="co">#&gt; AIC = 46331.1</span></a>
+<a class="sourceLine" id="cb15-39" title="39"><span class="co">#&gt; Residual standard deviation = 5.970</span></a></code></pre></div>
 <div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb16-1" title="1"><span class="kw">modelFixedEff</span>(modList)</a>
-<a class="sourceLine" id="cb16-2" title="2"><span class="co">#&gt; Warning in modelFixedEff(modList): Between imputation variance is very</span></a>
-<a class="sourceLine" id="cb16-3" title="3"><span class="co">#&gt; small, are imputation sets too similar?</span></a>
-<a class="sourceLine" id="cb16-4" title="4"><span class="co">#&gt;          term  estimate std.error  statistic           df</span></a>
-<a class="sourceLine" id="cb16-5" title="5"><span class="co">#&gt; 1 (Intercept) 13.964580 0.1735254  80.475705 2.178458e+09</span></a>
-<a class="sourceLine" id="cb16-6" title="6"><span class="co">#&gt; 2      female -1.197021 0.1590628  -7.525465 4.567037e+05</span></a>
-<a class="sourceLine" id="cb16-7" title="7"><span class="co">#&gt; 3     meanses  3.218819 0.3612399   8.910476 1.078433e+05</span></a>
-<a class="sourceLine" id="cb16-8" title="8"><span class="co">#&gt; 4    minority -2.501642 0.2013395 -12.424990 2.002493e+04</span></a>
-<a class="sourceLine" id="cb16-9" title="9"><span class="co">#&gt; 5         ses  1.930981 0.1212754  15.922281 2.337436e+05</span></a></code></pre></div>
+<a class="sourceLine" id="cb16-2" title="2"><span class="co">#&gt;          term  estimate std.error  statistic        df</span></a>
+<a class="sourceLine" id="cb16-3" title="3"><span class="co">#&gt; 1 (Intercept) 14.028792 0.1741275  80.566201  99310.59</span></a>
+<a class="sourceLine" id="cb16-4" title="4"><span class="co">#&gt; 2      female -1.213086 0.1601572  -7.574345  16493.05</span></a>
+<a class="sourceLine" id="cb16-5" title="5"><span class="co">#&gt; 3     meanses  3.141636 0.3582833   8.768580 259740.57</span></a>
+<a class="sourceLine" id="cb16-6" title="6"><span class="co">#&gt; 4    minority -2.680352 0.2017037 -13.288566  18540.84</span></a>
+<a class="sourceLine" id="cb16-7" title="7"><span class="co">#&gt; 5         ses  1.966725 0.1201239  16.372467 166028.05</span></a></code></pre></div>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" title="1"><span class="kw">ranef</span>(modList)</a>
 <a class="sourceLine" id="cb17-2" title="2"><span class="co">#&gt; $schid</span></a>
-<a class="sourceLine" id="cb17-3" title="3"><span class="co">#&gt;        (Intercept)           ses</span></a>
-<a class="sourceLine" id="cb17-4" title="4"><span class="co">#&gt; 1224 -1.399143e-01  0.0870214876</span></a>
-<a class="sourceLine" id="cb17-5" title="5"><span class="co">#&gt; 1288 -2.029507e-02  0.0209930730</span></a>
-<a class="sourceLine" id="cb17-6" title="6"><span class="co">#&gt; 1296 -1.387502e-01 -0.0089081897</span></a>
-<a class="sourceLine" id="cb17-7" title="7"><span class="co">#&gt; 1308  9.060509e-02 -0.0457447758</span></a>
-<a class="sourceLine" id="cb17-8" title="8"><span class="co">#&gt; 1317  6.838016e-02 -0.0366742092</span></a>
-<a class="sourceLine" id="cb17-9" title="9"><span class="co">#&gt; 1358 -2.818154e-01  0.0923422578</span></a>
-<a class="sourceLine" id="cb17-10" title="10"><span class="co">#&gt; 1374 -3.777665e-01  0.1339845395</span></a>
-<a class="sourceLine" id="cb17-11" title="11"><span class="co">#&gt; 1433  2.725176e-01 -0.0060950439</span></a>
-<a class="sourceLine" id="cb17-12" title="12"><span class="co">#&gt; 1436  2.525151e-01 -0.0222370416</span></a>
-<a class="sourceLine" id="cb17-13" title="13"><span class="co">#&gt; 1461 -8.627395e-02  0.1483725160</span></a>
-<a class="sourceLine" id="cb17-14" title="14"><span class="co">#&gt; 1462  3.233442e-01 -0.1333918276</span></a>
-<a class="sourceLine" id="cb17-15" title="15"><span class="co">#&gt; 1477  4.567923e-02 -0.0432910687</span></a>
-<a class="sourceLine" id="cb17-16" title="16"><span class="co">#&gt; 1499 -3.181307e-01  0.0955674324</span></a>
-<a class="sourceLine" id="cb17-17" title="17"><span class="co">#&gt; 1637 -1.324880e-01  0.0331225424</span></a>
-<a class="sourceLine" id="cb17-18" title="18"><span class="co">#&gt; 1906  4.681832e-02 -0.0137194805</span></a>
-<a class="sourceLine" id="cb17-19" title="19"><span class="co">#&gt; 1909 -5.288305e-02  0.0323517862</span></a>
-<a class="sourceLine" id="cb17-20" title="20"><span class="co">#&gt; 1942  1.966316e-01 -0.0404801434</span></a>
-<a class="sourceLine" id="cb17-21" title="21"><span class="co">#&gt; 1946 -3.218928e-02  0.0721722386</span></a>
-<a class="sourceLine" id="cb17-22" title="22"><span class="co">#&gt; 2030 -4.210847e-01  0.0250199864</span></a>
-<a class="sourceLine" id="cb17-23" title="23"><span class="co">#&gt; 2208 -6.487192e-03 -0.0113346774</span></a>
-<a class="sourceLine" id="cb17-24" title="24"><span class="co">#&gt; 2277  2.602357e-01 -0.2385197863</span></a>
-<a class="sourceLine" id="cb17-25" title="25"><span class="co">#&gt; 2305  5.242570e-01 -0.2220979374</span></a>
-<a class="sourceLine" id="cb17-26" title="26"><span class="co">#&gt; 2336  1.502060e-01 -0.0252668173</span></a>
-<a class="sourceLine" id="cb17-27" title="27"><span class="co">#&gt; 2458  2.619321e-01 -0.0380037269</span></a>
-<a class="sourceLine" id="cb17-28" title="28"><span class="co">#&gt; 2467 -2.416925e-01  0.0566945925</span></a>
-<a class="sourceLine" id="cb17-29" title="29"><span class="co">#&gt; 2526  4.506364e-01 -0.1258336341</span></a>
-<a class="sourceLine" id="cb17-30" title="30"><span class="co">#&gt; 2626  5.163045e-02  0.0327197223</span></a>
-<a class="sourceLine" id="cb17-31" title="31"><span class="co">#&gt; 2629  3.403597e-01 -0.1159710875</span></a>
-<a class="sourceLine" id="cb17-32" title="32"><span class="co">#&gt; 2639  6.473044e-02 -0.0779492331</span></a>
-<a class="sourceLine" id="cb17-33" title="33"><span class="co">#&gt; 2651 -4.029183e-01  0.1139582321</span></a>
-<a class="sourceLine" id="cb17-34" title="34"><span class="co">#&gt; 2655  6.596490e-01 -0.0621961389</span></a>
-<a class="sourceLine" id="cb17-35" title="35"><span class="co">#&gt; 2658 -2.426720e-01  0.0449809087</span></a>
-<a class="sourceLine" id="cb17-36" title="36"><span class="co">#&gt; 2755  1.460620e-01 -0.0819997261</span></a>
-<a class="sourceLine" id="cb17-37" title="37"><span class="co">#&gt; 2768 -2.479582e-01  0.0848581743</span></a>
-<a class="sourceLine" id="cb17-38" title="38"><span class="co">#&gt; 2771  4.371219e-02  0.0430727123</span></a>
-<a class="sourceLine" id="cb17-39" title="39"><span class="co">#&gt; 2818 -4.491828e-03  0.0070114057</span></a>
-<a class="sourceLine" id="cb17-40" title="40"><span class="co">#&gt; 2917  1.281104e-01 -0.0882143551</span></a>
-<a class="sourceLine" id="cb17-41" title="41"><span class="co">#&gt; 2990  4.588319e-01 -0.0710915178</span></a>
-<a class="sourceLine" id="cb17-42" title="42"><span class="co">#&gt; 2995 -2.574655e-01 -0.0069496065</span></a>
-<a class="sourceLine" id="cb17-43" title="43"><span class="co">#&gt; 3013 -9.979640e-02  0.0495740012</span></a>
-<a class="sourceLine" id="cb17-44" title="44"><span class="co">#&gt; 3020  8.354564e-02 -0.0436842394</span></a>
-<a class="sourceLine" id="cb17-45" title="45"><span class="co">#&gt; 3039  2.283791e-01 -0.0096086898</span></a>
-<a class="sourceLine" id="cb17-46" title="46"><span class="co">#&gt; 3088 -5.936495e-02 -0.0197989752</span></a>
-<a class="sourceLine" id="cb17-47" title="47"><span class="co">#&gt; 3152 -3.574201e-02  0.0510562127</span></a>
-<a class="sourceLine" id="cb17-48" title="48"><span class="co">#&gt; 3332 -2.514696e-01  0.0054341215</span></a>
-<a class="sourceLine" id="cb17-49" title="49"><span class="co">#&gt; 3351 -3.753715e-01 -0.0329565944</span></a>
-<a class="sourceLine" id="cb17-50" title="50"><span class="co">#&gt; 3377  1.119774e-01 -0.1241045407</span></a>
-<a class="sourceLine" id="cb17-51" title="51"><span class="co">#&gt; 3427  8.509779e-01 -0.2159736932</span></a>
-<a class="sourceLine" id="cb17-52" title="52"><span class="co">#&gt; 3498  1.405609e-02 -0.0601425130</span></a>
-<a class="sourceLine" id="cb17-53" title="53"><span class="co">#&gt; 3499 -1.526413e-01 -0.0273713481</span></a>
-<a class="sourceLine" id="cb17-54" title="54"><span class="co">#&gt; 3533 -1.978000e-01 -0.0130213455</span></a>
-<a class="sourceLine" id="cb17-55" title="55"><span class="co">#&gt; 3610  3.139802e-01 -0.0015413182</span></a>
-<a class="sourceLine" id="cb17-56" title="56"><span class="co">#&gt; 3657 -5.009415e-02  0.0910862871</span></a>
-<a class="sourceLine" id="cb17-57" title="57"><span class="co">#&gt; 3688  8.387615e-03 -0.0300259707</span></a>
-<a class="sourceLine" id="cb17-58" title="58"><span class="co">#&gt; 3705 -4.243127e-01  0.0006643509</span></a>
-<a class="sourceLine" id="cb17-59" title="59"><span class="co">#&gt; 3716  7.620130e-02  0.0997516459</span></a>
-<a class="sourceLine" id="cb17-60" title="60"><span class="co">#&gt; 3838  4.796080e-01 -0.1452775785</span></a>
-<a class="sourceLine" id="cb17-61" title="61"><span class="co">#&gt; 3881 -2.859155e-01  0.0525682107</span></a>
-<a class="sourceLine" id="cb17-62" title="62"><span class="co">#&gt; 3967 -5.528114e-02  0.0258997861</span></a>
-<a class="sourceLine" id="cb17-63" title="63"><span class="co">#&gt; 3992  8.982978e-02 -0.0669851638</span></a>
-<a class="sourceLine" id="cb17-64" title="64"><span class="co">#&gt; 3999 -7.807423e-02  0.0796825045</span></a>
-<a class="sourceLine" id="cb17-65" title="65"><span class="co">#&gt; 4042 -1.629962e-01 -0.0013027027</span></a>
-<a class="sourceLine" id="cb17-66" title="66"><span class="co">#&gt; 4173 -9.154334e-02  0.0481256404</span></a>
-<a class="sourceLine" id="cb17-67" title="67"><span class="co">#&gt; 4223  2.919159e-01 -0.0600704384</span></a>
-<a class="sourceLine" id="cb17-68" title="68"><span class="co">#&gt; 4253 -5.245953e-02 -0.1001175394</span></a>
-<a class="sourceLine" id="cb17-69" title="69"><span class="co">#&gt; 4292  4.824264e-01 -0.1522695765</span></a>
-<a class="sourceLine" id="cb17-70" title="70"><span class="co">#&gt; 4325  4.322369e-02  0.0219917820</span></a>
-<a class="sourceLine" id="cb17-71" title="71"><span class="co">#&gt; 4350 -3.022826e-01  0.1152436365</span></a>
-<a class="sourceLine" id="cb17-72" title="72"><span class="co">#&gt; 4383 -2.289804e-01  0.0816705223</span></a>
-<a class="sourceLine" id="cb17-73" title="73"><span class="co">#&gt; 4410 -8.603032e-02  0.0456840195</span></a>
-<a class="sourceLine" id="cb17-74" title="74"><span class="co">#&gt; 4420  1.928974e-01  0.0036406506</span></a>
-<a class="sourceLine" id="cb17-75" title="75"><span class="co">#&gt; 4458 -4.177671e-02 -0.0242913321</span></a>
-<a class="sourceLine" id="cb17-76" title="76"><span class="co">#&gt; 4511  2.382551e-01 -0.1070728572</span></a>
-<a class="sourceLine" id="cb17-77" title="77"><span class="co">#&gt; 4523 -2.528129e-01  0.0607102350</span></a>
-<a class="sourceLine" id="cb17-78" title="78"><span class="co">#&gt; 4530  5.363988e-02 -0.0206005365</span></a>
-<a class="sourceLine" id="cb17-79" title="79"><span class="co">#&gt; 4642  1.198211e-01  0.0235413874</span></a>
-<a class="sourceLine" id="cb17-80" title="80"><span class="co">#&gt; 4868 -2.452905e-01 -0.0323862227</span></a>
-<a class="sourceLine" id="cb17-81" title="81"><span class="co">#&gt; 4931 -2.106879e-01  0.0296440221</span></a>
-<a class="sourceLine" id="cb17-82" title="82"><span class="co">#&gt; 5192 -2.470670e-01  0.0316924716</span></a>
-<a class="sourceLine" id="cb17-83" title="83"><span class="co">#&gt; 5404 -2.158925e-01  0.0305173800</span></a>
-<a class="sourceLine" id="cb17-84" title="84"><span class="co">#&gt; 5619 -9.054503e-02  0.0949872291</span></a>
-<a class="sourceLine" id="cb17-85" title="85"><span class="co">#&gt; 5640  8.676281e-02  0.0449915016</span></a>
-<a class="sourceLine" id="cb17-86" title="86"><span class="co">#&gt; 5650  4.793208e-01 -0.1094774343</span></a>
-<a class="sourceLine" id="cb17-87" title="87"><span class="co">#&gt; 5667 -2.832204e-01  0.0809240482</span></a>
-<a class="sourceLine" id="cb17-88" title="88"><span class="co">#&gt; 5720  1.187385e-01 -0.0044879297</span></a>
-<a class="sourceLine" id="cb17-89" title="89"><span class="co">#&gt; 5761  1.462343e-01  0.0108107176</span></a>
-<a class="sourceLine" id="cb17-90" title="90"><span class="co">#&gt; 5762 -9.120342e-02 -0.0121329368</span></a>
-<a class="sourceLine" id="cb17-91" title="91"><span class="co">#&gt; 5783 -6.455325e-02  0.0117745684</span></a>
-<a class="sourceLine" id="cb17-92" title="92"><span class="co">#&gt; 5815 -1.909420e-01  0.0520751759</span></a>
-<a class="sourceLine" id="cb17-93" title="93"><span class="co">#&gt; 5819 -3.427290e-01  0.0567897107</span></a>
-<a class="sourceLine" id="cb17-94" title="94"><span class="co">#&gt; 5838 -4.330172e-02  0.0046177020</span></a>
-<a class="sourceLine" id="cb17-95" title="95"><span class="co">#&gt; 5937  7.015990e-02 -0.0396161585</span></a>
-<a class="sourceLine" id="cb17-96" title="96"><span class="co">#&gt; 6074  3.803140e-01 -0.0948826088</span></a>
-<a class="sourceLine" id="cb17-97" title="97"><span class="co">#&gt; 6089  2.679939e-01 -0.0767274494</span></a>
-<a class="sourceLine" id="cb17-98" title="98"><span class="co">#&gt; 6144 -2.800829e-01  0.0956555049</span></a>
-<a class="sourceLine" id="cb17-99" title="99"><span class="co">#&gt; 6170  3.302820e-01  0.0011430677</span></a>
-<a class="sourceLine" id="cb17-100" title="100"><span class="co">#&gt; 6291  2.019763e-01 -0.0138928506</span></a>
-<a class="sourceLine" id="cb17-101" title="101"><span class="co">#&gt; 6366  1.969135e-01 -0.0448172553</span></a>
-<a class="sourceLine" id="cb17-102" title="102"><span class="co">#&gt; 6397  1.875132e-01 -0.0495921582</span></a>
-<a class="sourceLine" id="cb17-103" title="103"><span class="co">#&gt; 6415 -6.722504e-02  0.0665583112</span></a>
-<a class="sourceLine" id="cb17-104" title="104"><span class="co">#&gt; 6443 -9.745699e-02 -0.0649203444</span></a>
-<a class="sourceLine" id="cb17-105" title="105"><span class="co">#&gt; 6464 -4.715221e-02 -0.0137902909</span></a>
-<a class="sourceLine" id="cb17-106" title="106"><span class="co">#&gt; 6469  2.976060e-01 -0.0506326255</span></a>
-<a class="sourceLine" id="cb17-107" title="107"><span class="co">#&gt; 6484  9.621267e-02 -0.0539022742</span></a>
-<a class="sourceLine" id="cb17-108" title="108"><span class="co">#&gt; 6578  3.299875e-01 -0.0731955878</span></a>
-<a class="sourceLine" id="cb17-109" title="109"><span class="co">#&gt; 6600 -2.046091e-01  0.1556103932</span></a>
-<a class="sourceLine" id="cb17-110" title="110"><span class="co">#&gt; 6808 -3.354575e-01  0.0366785359</span></a>
-<a class="sourceLine" id="cb17-111" title="111"><span class="co">#&gt; 6816  2.075283e-01 -0.0841527359</span></a>
-<a class="sourceLine" id="cb17-112" title="112"><span class="co">#&gt; 6897  2.875746e-02  0.0586708937</span></a>
-<a class="sourceLine" id="cb17-113" title="113"><span class="co">#&gt; 6990 -3.389251e-01 -0.0032399959</span></a>
-<a class="sourceLine" id="cb17-114" title="114"><span class="co">#&gt; 7011  5.528705e-02  0.0536884735</span></a>
-<a class="sourceLine" id="cb17-115" title="115"><span class="co">#&gt; 7101 -1.317326e-01 -0.0055698337</span></a>
-<a class="sourceLine" id="cb17-116" title="116"><span class="co">#&gt; 7172 -2.069157e-01  0.0215594869</span></a>
-<a class="sourceLine" id="cb17-117" title="117"><span class="co">#&gt; 7232 -7.958129e-05  0.0700562217</span></a>
-<a class="sourceLine" id="cb17-118" title="118"><span class="co">#&gt; 7276 -9.220686e-02  0.0705751886</span></a>
-<a class="sourceLine" id="cb17-119" title="119"><span class="co">#&gt; 7332  4.078184e-02  0.0078698866</span></a>
-<a class="sourceLine" id="cb17-120" title="120"><span class="co">#&gt; 7341 -2.906345e-01  0.0166689706</span></a>
-<a class="sourceLine" id="cb17-121" title="121"><span class="co">#&gt; 7342  7.117216e-02 -0.0372525742</span></a>
-<a class="sourceLine" id="cb17-122" title="122"><span class="co">#&gt; 7345 -2.484831e-01  0.1256428877</span></a>
-<a class="sourceLine" id="cb17-123" title="123"><span class="co">#&gt; 7364  2.631941e-01 -0.0759474691</span></a>
-<a class="sourceLine" id="cb17-124" title="124"><span class="co">#&gt; 7635  6.735063e-02 -0.0217257133</span></a>
-<a class="sourceLine" id="cb17-125" title="125"><span class="co">#&gt; 7688  6.103311e-01 -0.1487600362</span></a>
-<a class="sourceLine" id="cb17-126" title="126"><span class="co">#&gt; 7697  1.274315e-01  0.0188445088</span></a>
-<a class="sourceLine" id="cb17-127" title="127"><span class="co">#&gt; 7734  5.924014e-02  0.0759096078</span></a>
-<a class="sourceLine" id="cb17-128" title="128"><span class="co">#&gt; 7890 -3.085090e-01  0.0055988603</span></a>
-<a class="sourceLine" id="cb17-129" title="129"><span class="co">#&gt; 7919 -1.316053e-01  0.1101965917</span></a>
-<a class="sourceLine" id="cb17-130" title="130"><span class="co">#&gt; 8009 -2.093561e-01 -0.0450702852</span></a>
-<a class="sourceLine" id="cb17-131" title="131"><span class="co">#&gt; 8150  1.005283e-01 -0.0757109662</span></a>
-<a class="sourceLine" id="cb17-132" title="132"><span class="co">#&gt; 8165  1.738215e-01 -0.0279922313</span></a>
-<a class="sourceLine" id="cb17-133" title="133"><span class="co">#&gt; 8175  1.141732e-01 -0.0476553823</span></a>
-<a class="sourceLine" id="cb17-134" title="134"><span class="co">#&gt; 8188 -1.195179e-01  0.0719283103</span></a>
-<a class="sourceLine" id="cb17-135" title="135"><span class="co">#&gt; 8193  5.708359e-01 -0.1110466009</span></a>
-<a class="sourceLine" id="cb17-136" title="136"><span class="co">#&gt; 8202 -2.154225e-01  0.0568820672</span></a>
-<a class="sourceLine" id="cb17-137" title="137"><span class="co">#&gt; 8357  1.779093e-01 -0.0170305658</span></a>
-<a class="sourceLine" id="cb17-138" title="138"><span class="co">#&gt; 8367 -7.875384e-01  0.1151473352</span></a>
-<a class="sourceLine" id="cb17-139" title="139"><span class="co">#&gt; 8477  7.698661e-02  0.0415470127</span></a>
-<a class="sourceLine" id="cb17-140" title="140"><span class="co">#&gt; 8531 -2.223920e-01  0.0896911258</span></a>
-<a class="sourceLine" id="cb17-141" title="141"><span class="co">#&gt; 8627 -4.182078e-01  0.0659411775</span></a>
-<a class="sourceLine" id="cb17-142" title="142"><span class="co">#&gt; 8628  6.084020e-01 -0.1199329555</span></a>
-<a class="sourceLine" id="cb17-143" title="143"><span class="co">#&gt; 8707 -9.115985e-02  0.0405670753</span></a>
-<a class="sourceLine" id="cb17-144" title="144"><span class="co">#&gt; 8775 -2.215740e-01  0.0101264628</span></a>
-<a class="sourceLine" id="cb17-145" title="145"><span class="co">#&gt; 8800  1.251331e-02  0.0069438812</span></a>
-<a class="sourceLine" id="cb17-146" title="146"><span class="co">#&gt; 8854 -6.080997e-01  0.1551850607</span></a>
-<a class="sourceLine" id="cb17-147" title="147"><span class="co">#&gt; 8857  2.188157e-01 -0.0623912476</span></a>
-<a class="sourceLine" id="cb17-148" title="148"><span class="co">#&gt; 8874  1.881203e-01  0.0103110946</span></a>
-<a class="sourceLine" id="cb17-149" title="149"><span class="co">#&gt; 8946 -1.465414e-01  0.0047247713</span></a>
-<a class="sourceLine" id="cb17-150" title="150"><span class="co">#&gt; 8983 -1.357560e-01 -0.0179624690</span></a>
-<a class="sourceLine" id="cb17-151" title="151"><span class="co">#&gt; 9021 -2.605620e-01  0.0254248923</span></a>
-<a class="sourceLine" id="cb17-152" title="152"><span class="co">#&gt; 9104 -1.435123e-02 -0.0125625455</span></a>
-<a class="sourceLine" id="cb17-153" title="153"><span class="co">#&gt; 9158 -2.798127e-01  0.1137418200</span></a>
-<a class="sourceLine" id="cb17-154" title="154"><span class="co">#&gt; 9198  3.129854e-01 -0.0053483729</span></a>
-<a class="sourceLine" id="cb17-155" title="155"><span class="co">#&gt; 9225  2.369962e-02  0.0687819911</span></a>
-<a class="sourceLine" id="cb17-156" title="156"><span class="co">#&gt; 9292  2.473993e-01 -0.0701204152</span></a>
-<a class="sourceLine" id="cb17-157" title="157"><span class="co">#&gt; 9340 -8.268410e-03  0.0286591632</span></a>
-<a class="sourceLine" id="cb17-158" title="158"><span class="co">#&gt; 9347 -3.581963e-02  0.0499939562</span></a>
-<a class="sourceLine" id="cb17-159" title="159"><span class="co">#&gt; 9359 -2.904600e-02 -0.0609316001</span></a>
-<a class="sourceLine" id="cb17-160" title="160"><span class="co">#&gt; 9397 -4.930650e-01  0.1161492623</span></a>
-<a class="sourceLine" id="cb17-161" title="161"><span class="co">#&gt; 9508  9.560210e-02  0.0150385488</span></a>
-<a class="sourceLine" id="cb17-162" title="162"><span class="co">#&gt; 9550 -2.461625e-01  0.0770399294</span></a>
-<a class="sourceLine" id="cb17-163" title="163"><span class="co">#&gt; 9586 -1.196654e-01 -0.0271003565</span></a></code></pre></div>
+<a class="sourceLine" id="cb17-3" title="3"><span class="co">#&gt;       (Intercept)           ses</span></a>
+<a class="sourceLine" id="cb17-4" title="4"><span class="co">#&gt; 1224 -0.157795533  0.0451127840</span></a>
+<a class="sourceLine" id="cb17-5" title="5"><span class="co">#&gt; 1288 -0.044476754  0.0191957958</span></a>
+<a class="sourceLine" id="cb17-6" title="6"><span class="co">#&gt; 1296 -0.126472259  0.0218757135</span></a>
+<a class="sourceLine" id="cb17-7" title="7"><span class="co">#&gt; 1308  0.064357632 -0.0167977336</span></a>
+<a class="sourceLine" id="cb17-8" title="8"><span class="co">#&gt; 1317  0.088861755 -0.0350837887</span></a>
+<a class="sourceLine" id="cb17-9" title="9"><span class="co">#&gt; 1358 -0.301385760  0.1053888143</span></a>
+<a class="sourceLine" id="cb17-10" title="10"><span class="co">#&gt; 1374 -0.350736225  0.1064976917</span></a>
+<a class="sourceLine" id="cb17-11" title="11"><span class="co">#&gt; 1433  0.307310844 -0.0444663946</span></a>
+<a class="sourceLine" id="cb17-12" title="12"><span class="co">#&gt; 1436  0.284513686 -0.0602282100</span></a>
+<a class="sourceLine" id="cb17-13" title="13"><span class="co">#&gt; 1461 -0.045882842  0.0719067703</span></a>
+<a class="sourceLine" id="cb17-14" title="14"><span class="co">#&gt; 1462  0.348424677 -0.1562366964</span></a>
+<a class="sourceLine" id="cb17-15" title="15"><span class="co">#&gt; 1477  0.042686687 -0.0406549686</span></a>
+<a class="sourceLine" id="cb17-16" title="16"><span class="co">#&gt; 1499 -0.293156885  0.0838236409</span></a>
+<a class="sourceLine" id="cb17-17" title="17"><span class="co">#&gt; 1637 -0.097080749  0.0324268391</span></a>
+<a class="sourceLine" id="cb17-18" title="18"><span class="co">#&gt; 1906  0.048446937 -0.0150064112</span></a>
+<a class="sourceLine" id="cb17-19" title="19"><span class="co">#&gt; 1909 -0.052969237  0.0205894104</span></a>
+<a class="sourceLine" id="cb17-20" title="20"><span class="co">#&gt; 1942  0.209581012 -0.0525053879</span></a>
+<a class="sourceLine" id="cb17-21" title="21"><span class="co">#&gt; 1946 -0.042287233  0.0350616964</span></a>
+<a class="sourceLine" id="cb17-22" title="22"><span class="co">#&gt; 2030 -0.429112816  0.0588461805</span></a>
+<a class="sourceLine" id="cb17-23" title="23"><span class="co">#&gt; 2208 -0.024593477  0.0228554436</span></a>
+<a class="sourceLine" id="cb17-24" title="24"><span class="co">#&gt; 2277  0.309800057 -0.1834173408</span></a>
+<a class="sourceLine" id="cb17-25" title="25"><span class="co">#&gt; 2305  0.550610497 -0.2049548526</span></a>
+<a class="sourceLine" id="cb17-26" title="26"><span class="co">#&gt; 2336  0.142313348 -0.0290535691</span></a>
+<a class="sourceLine" id="cb17-27" title="27"><span class="co">#&gt; 2458  0.245993091 -0.0255602587</span></a>
+<a class="sourceLine" id="cb17-28" title="28"><span class="co">#&gt; 2467 -0.222494935  0.0640753511</span></a>
+<a class="sourceLine" id="cb17-29" title="29"><span class="co">#&gt; 2526  0.449997476 -0.1312121315</span></a>
+<a class="sourceLine" id="cb17-30" title="30"><span class="co">#&gt; 2626  0.027751982  0.0238061610</span></a>
+<a class="sourceLine" id="cb17-31" title="31"><span class="co">#&gt; 2629  0.335613322 -0.0942540137</span></a>
+<a class="sourceLine" id="cb17-32" title="32"><span class="co">#&gt; 2639  0.094386542 -0.0820201077</span></a>
+<a class="sourceLine" id="cb17-33" title="33"><span class="co">#&gt; 2651 -0.393517983  0.1350175898</span></a>
+<a class="sourceLine" id="cb17-34" title="34"><span class="co">#&gt; 2655  0.640384122 -0.1435806679</span></a>
+<a class="sourceLine" id="cb17-35" title="35"><span class="co">#&gt; 2658 -0.243275105  0.0607205634</span></a>
+<a class="sourceLine" id="cb17-36" title="36"><span class="co">#&gt; 2755  0.135787228 -0.0631922841</span></a>
+<a class="sourceLine" id="cb17-37" title="37"><span class="co">#&gt; 2768 -0.268666958  0.0917130815</span></a>
+<a class="sourceLine" id="cb17-38" title="38"><span class="co">#&gt; 2771  0.033436716  0.0272030521</span></a>
+<a class="sourceLine" id="cb17-39" title="39"><span class="co">#&gt; 2818 -0.018785461  0.0214043728</span></a>
+<a class="sourceLine" id="cb17-40" title="40"><span class="co">#&gt; 2917  0.152738008 -0.0762445189</span></a>
+<a class="sourceLine" id="cb17-41" title="41"><span class="co">#&gt; 2990  0.448844959 -0.0935887501</span></a>
+<a class="sourceLine" id="cb17-42" title="42"><span class="co">#&gt; 2995 -0.235287167  0.0148768819</span></a>
+<a class="sourceLine" id="cb17-43" title="43"><span class="co">#&gt; 3013 -0.106680710  0.0516779815</span></a>
+<a class="sourceLine" id="cb17-44" title="44"><span class="co">#&gt; 3020  0.090727137 -0.0308716386</span></a>
+<a class="sourceLine" id="cb17-45" title="45"><span class="co">#&gt; 3039  0.243996619 -0.0435977108</span></a>
+<a class="sourceLine" id="cb17-46" title="46"><span class="co">#&gt; 3088 -0.042231336 -0.0122411932</span></a>
+<a class="sourceLine" id="cb17-47" title="47"><span class="co">#&gt; 3152 -0.034103349  0.0356155581</span></a>
+<a class="sourceLine" id="cb17-48" title="48"><span class="co">#&gt; 3332 -0.259777846  0.0305681683</span></a>
+<a class="sourceLine" id="cb17-49" title="49"><span class="co">#&gt; 3351 -0.461248418  0.0996270996</span></a>
+<a class="sourceLine" id="cb17-50" title="50"><span class="co">#&gt; 3377  0.142496875 -0.1211102758</span></a>
+<a class="sourceLine" id="cb17-51" title="51"><span class="co">#&gt; 3427  0.841386693 -0.2339682964</span></a>
+<a class="sourceLine" id="cb17-52" title="52"><span class="co">#&gt; 3498  0.024887322 -0.0537205006</span></a>
+<a class="sourceLine" id="cb17-53" title="53"><span class="co">#&gt; 3499 -0.119817169  0.0080680143</span></a>
+<a class="sourceLine" id="cb17-54" title="54"><span class="co">#&gt; 3533 -0.149220939  0.0010719643</span></a>
+<a class="sourceLine" id="cb17-55" title="55"><span class="co">#&gt; 3610  0.297746069 -0.0014053243</span></a>
+<a class="sourceLine" id="cb17-56" title="56"><span class="co">#&gt; 3657 -0.069261452  0.0633533767</span></a>
+<a class="sourceLine" id="cb17-57" title="57"><span class="co">#&gt; 3688 -0.061555723  0.0315302117</span></a>
+<a class="sourceLine" id="cb17-58" title="58"><span class="co">#&gt; 3705 -0.427141188  0.0523408834</span></a>
+<a class="sourceLine" id="cb17-59" title="59"><span class="co">#&gt; 3716  0.061285137  0.0757199239</span></a>
+<a class="sourceLine" id="cb17-60" title="60"><span class="co">#&gt; 3838  0.485386271 -0.1598435378</span></a>
+<a class="sourceLine" id="cb17-61" title="61"><span class="co">#&gt; 3881 -0.309537022  0.0860578519</span></a>
+<a class="sourceLine" id="cb17-62" title="62"><span class="co">#&gt; 3967 -0.056525049  0.0445060296</span></a>
+<a class="sourceLine" id="cb17-63" title="63"><span class="co">#&gt; 3992  0.075297122 -0.0637600889</span></a>
+<a class="sourceLine" id="cb17-64" title="64"><span class="co">#&gt; 3999 -0.055817277  0.0457642823</span></a>
+<a class="sourceLine" id="cb17-65" title="65"><span class="co">#&gt; 4042 -0.197812746  0.0313570583</span></a>
+<a class="sourceLine" id="cb17-66" title="66"><span class="co">#&gt; 4173 -0.082777595  0.0432272733</span></a>
+<a class="sourceLine" id="cb17-67" title="67"><span class="co">#&gt; 4223  0.266360906 -0.0698408106</span></a>
+<a class="sourceLine" id="cb17-68" title="68"><span class="co">#&gt; 4253 -0.002838943 -0.0732012994</span></a>
+<a class="sourceLine" id="cb17-69" title="69"><span class="co">#&gt; 4292  0.495110532 -0.1764400335</span></a>
+<a class="sourceLine" id="cb17-70" title="70"><span class="co">#&gt; 4325  0.021047068  0.0103006817</span></a>
+<a class="sourceLine" id="cb17-71" title="71"><span class="co">#&gt; 4350 -0.262817422  0.1005502052</span></a>
+<a class="sourceLine" id="cb17-72" title="72"><span class="co">#&gt; 4383 -0.234756733  0.0855789496</span></a>
+<a class="sourceLine" id="cb17-73" title="73"><span class="co">#&gt; 4410 -0.063023118  0.0284242048</span></a>
+<a class="sourceLine" id="cb17-74" title="74"><span class="co">#&gt; 4420  0.205737288 -0.0273245989</span></a>
+<a class="sourceLine" id="cb17-75" title="75"><span class="co">#&gt; 4458 -0.043787877 -0.0105867355</span></a>
+<a class="sourceLine" id="cb17-76" title="76"><span class="co">#&gt; 4511  0.216198981 -0.0590666506</span></a>
+<a class="sourceLine" id="cb17-77" title="77"><span class="co">#&gt; 4523 -0.253392354  0.0623924215</span></a>
+<a class="sourceLine" id="cb17-78" title="78"><span class="co">#&gt; 4530  0.061007622 -0.0141412262</span></a>
+<a class="sourceLine" id="cb17-79" title="79"><span class="co">#&gt; 4642  0.120939515 -0.0012115746</span></a>
+<a class="sourceLine" id="cb17-80" title="80"><span class="co">#&gt; 4868 -0.225562808  0.0092349324</span></a>
+<a class="sourceLine" id="cb17-81" title="81"><span class="co">#&gt; 4931 -0.151489897 -0.0105474646</span></a>
+<a class="sourceLine" id="cb17-82" title="82"><span class="co">#&gt; 5192 -0.244884720  0.0662313861</span></a>
+<a class="sourceLine" id="cb17-83" title="83"><span class="co">#&gt; 5404 -0.267282666  0.0289963481</span></a>
+<a class="sourceLine" id="cb17-84" title="84"><span class="co">#&gt; 5619 -0.088591305  0.1050668069</span></a>
+<a class="sourceLine" id="cb17-85" title="85"><span class="co">#&gt; 5640  0.066352031  0.0263435429</span></a>
+<a class="sourceLine" id="cb17-86" title="86"><span class="co">#&gt; 5650  0.496007374 -0.1520751279</span></a>
+<a class="sourceLine" id="cb17-87" title="87"><span class="co">#&gt; 5667 -0.291090712  0.0849233773</span></a>
+<a class="sourceLine" id="cb17-88" title="88"><span class="co">#&gt; 5720  0.091591369 -0.0101163734</span></a>
+<a class="sourceLine" id="cb17-89" title="89"><span class="co">#&gt; 5761  0.134959735  0.0032009015</span></a>
+<a class="sourceLine" id="cb17-90" title="90"><span class="co">#&gt; 5762 -0.090505308  0.0088358929</span></a>
+<a class="sourceLine" id="cb17-91" title="91"><span class="co">#&gt; 5783 -0.093105251  0.0419784658</span></a>
+<a class="sourceLine" id="cb17-92" title="92"><span class="co">#&gt; 5815 -0.180032189  0.0567256485</span></a>
+<a class="sourceLine" id="cb17-93" title="93"><span class="co">#&gt; 5819 -0.324949316  0.0664861258</span></a>
+<a class="sourceLine" id="cb17-94" title="94"><span class="co">#&gt; 5838 -0.038168235  0.0005292275</span></a>
+<a class="sourceLine" id="cb17-95" title="95"><span class="co">#&gt; 5937  0.040928181 -0.0176469977</span></a>
+<a class="sourceLine" id="cb17-96" title="96"><span class="co">#&gt; 6074  0.361576085 -0.1098990853</span></a>
+<a class="sourceLine" id="cb17-97" title="97"><span class="co">#&gt; 6089  0.230329688 -0.0455594013</span></a>
+<a class="sourceLine" id="cb17-98" title="98"><span class="co">#&gt; 6144 -0.272422991  0.0809874046</span></a>
+<a class="sourceLine" id="cb17-99" title="99"><span class="co">#&gt; 6170  0.279563058 -0.0545497420</span></a>
+<a class="sourceLine" id="cb17-100" title="100"><span class="co">#&gt; 6291  0.181117957 -0.0356960554</span></a>
+<a class="sourceLine" id="cb17-101" title="101"><span class="co">#&gt; 6366  0.193708113 -0.0594649551</span></a>
+<a class="sourceLine" id="cb17-102" title="102"><span class="co">#&gt; 6397  0.183418370 -0.0437084542</span></a>
+<a class="sourceLine" id="cb17-103" title="103"><span class="co">#&gt; 6415 -0.082399227  0.0577125726</span></a>
+<a class="sourceLine" id="cb17-104" title="104"><span class="co">#&gt; 6443 -0.098586726 -0.0413265591</span></a>
+<a class="sourceLine" id="cb17-105" title="105"><span class="co">#&gt; 6464 -0.006930839 -0.0110530398</span></a>
+<a class="sourceLine" id="cb17-106" title="106"><span class="co">#&gt; 6469  0.342855296 -0.0923368634</span></a>
+<a class="sourceLine" id="cb17-107" title="107"><span class="co">#&gt; 6484  0.099185197 -0.0332806845</span></a>
+<a class="sourceLine" id="cb17-108" title="108"><span class="co">#&gt; 6578  0.317864661 -0.0765973348</span></a>
+<a class="sourceLine" id="cb17-109" title="109"><span class="co">#&gt; 6600 -0.226249834  0.1266724638</span></a>
+<a class="sourceLine" id="cb17-110" title="110"><span class="co">#&gt; 6808 -0.331443100  0.0659644663</span></a>
+<a class="sourceLine" id="cb17-111" title="111"><span class="co">#&gt; 6816  0.197569880 -0.0620211170</span></a>
+<a class="sourceLine" id="cb17-112" title="112"><span class="co">#&gt; 6897  0.032147952  0.0304756664</span></a>
+<a class="sourceLine" id="cb17-113" title="113"><span class="co">#&gt; 6990 -0.298601140  0.0257587587</span></a>
+<a class="sourceLine" id="cb17-114" title="114"><span class="co">#&gt; 7011  0.061065847  0.0284790004</span></a>
+<a class="sourceLine" id="cb17-115" title="115"><span class="co">#&gt; 7101 -0.108095935  0.0111424320</span></a>
+<a class="sourceLine" id="cb17-116" title="116"><span class="co">#&gt; 7172 -0.200642122  0.0236336161</span></a>
+<a class="sourceLine" id="cb17-117" title="117"><span class="co">#&gt; 7232 -0.031354643  0.0561977605</span></a>
+<a class="sourceLine" id="cb17-118" title="118"><span class="co">#&gt; 7276 -0.071317368  0.0498968187</span></a>
+<a class="sourceLine" id="cb17-119" title="119"><span class="co">#&gt; 7332  0.036955530  0.0115037701</span></a>
+<a class="sourceLine" id="cb17-120" title="120"><span class="co">#&gt; 7341 -0.284857609  0.0196994369</span></a>
+<a class="sourceLine" id="cb17-121" title="121"><span class="co">#&gt; 7342  0.071738535 -0.0234087825</span></a>
+<a class="sourceLine" id="cb17-122" title="122"><span class="co">#&gt; 7345 -0.246456373  0.0990572950</span></a>
+<a class="sourceLine" id="cb17-123" title="123"><span class="co">#&gt; 7364  0.281626879 -0.0887844808</span></a>
+<a class="sourceLine" id="cb17-124" title="124"><span class="co">#&gt; 7635  0.067695672 -0.0045773702</span></a>
+<a class="sourceLine" id="cb17-125" title="125"><span class="co">#&gt; 7688  0.594207877 -0.1591233000</span></a>
+<a class="sourceLine" id="cb17-126" title="126"><span class="co">#&gt; 7697  0.094743826 -0.0012484228</span></a>
+<a class="sourceLine" id="cb17-127" title="127"><span class="co">#&gt; 7734  0.033326916  0.0503135537</span></a>
+<a class="sourceLine" id="cb17-128" title="128"><span class="co">#&gt; 7890 -0.289921123  0.0298758440</span></a>
+<a class="sourceLine" id="cb17-129" title="129"><span class="co">#&gt; 7919 -0.149007142  0.0495897913</span></a>
+<a class="sourceLine" id="cb17-130" title="130"><span class="co">#&gt; 8009 -0.244371368  0.0271887171</span></a>
+<a class="sourceLine" id="cb17-131" title="131"><span class="co">#&gt; 8150  0.064657992 -0.0398760061</span></a>
+<a class="sourceLine" id="cb17-132" title="132"><span class="co">#&gt; 8165  0.175619037 -0.0474879689</span></a>
+<a class="sourceLine" id="cb17-133" title="133"><span class="co">#&gt; 8175  0.106248119 -0.0365013872</span></a>
+<a class="sourceLine" id="cb17-134" title="134"><span class="co">#&gt; 8188 -0.114131805  0.0573622366</span></a>
+<a class="sourceLine" id="cb17-135" title="135"><span class="co">#&gt; 8193  0.542176501 -0.1395995719</span></a>
+<a class="sourceLine" id="cb17-136" title="136"><span class="co">#&gt; 8202 -0.224686594  0.0855379047</span></a>
+<a class="sourceLine" id="cb17-137" title="137"><span class="co">#&gt; 8357  0.189677518 -0.0218034980</span></a>
+<a class="sourceLine" id="cb17-138" title="138"><span class="co">#&gt; 8367 -0.753895035  0.1525305352</span></a>
+<a class="sourceLine" id="cb17-139" title="139"><span class="co">#&gt; 8477  0.074297200  0.0168614134</span></a>
+<a class="sourceLine" id="cb17-140" title="140"><span class="co">#&gt; 8531 -0.205339027  0.0413324032</span></a>
+<a class="sourceLine" id="cb17-141" title="141"><span class="co">#&gt; 8627 -0.378034984  0.0380125197</span></a>
+<a class="sourceLine" id="cb17-142" title="142"><span class="co">#&gt; 8628  0.607613395 -0.1688034840</span></a>
+<a class="sourceLine" id="cb17-143" title="143"><span class="co">#&gt; 8707 -0.085939080  0.0478432971</span></a>
+<a class="sourceLine" id="cb17-144" title="144"><span class="co">#&gt; 8775 -0.201067311  0.0092501597</span></a>
+<a class="sourceLine" id="cb17-145" title="145"><span class="co">#&gt; 8800 -0.001740915  0.0111088913</span></a>
+<a class="sourceLine" id="cb17-146" title="146"><span class="co">#&gt; 8854 -0.559785941  0.1509853643</span></a>
+<a class="sourceLine" id="cb17-147" title="147"><span class="co">#&gt; 8857  0.264207656 -0.0929013046</span></a>
+<a class="sourceLine" id="cb17-148" title="148"><span class="co">#&gt; 8874  0.185982681 -0.0115522511</span></a>
+<a class="sourceLine" id="cb17-149" title="149"><span class="co">#&gt; 8946 -0.167392474  0.0227325069</span></a>
+<a class="sourceLine" id="cb17-150" title="150"><span class="co">#&gt; 8983 -0.141209027  0.0250288618</span></a>
+<a class="sourceLine" id="cb17-151" title="151"><span class="co">#&gt; 9021 -0.240450945  0.0425264700</span></a>
+<a class="sourceLine" id="cb17-152" title="152"><span class="co">#&gt; 9104 -0.041255449  0.0031660145</span></a>
+<a class="sourceLine" id="cb17-153" title="153"><span class="co">#&gt; 9158 -0.281158323  0.1121016974</span></a>
+<a class="sourceLine" id="cb17-154" title="154"><span class="co">#&gt; 9198  0.321737680 -0.0485854075</span></a>
+<a class="sourceLine" id="cb17-155" title="155"><span class="co">#&gt; 9225  0.003967024  0.0297600149</span></a>
+<a class="sourceLine" id="cb17-156" title="156"><span class="co">#&gt; 9292  0.236024371 -0.0736002233</span></a>
+<a class="sourceLine" id="cb17-157" title="157"><span class="co">#&gt; 9340 -0.017193371  0.0168080235</span></a>
+<a class="sourceLine" id="cb17-158" title="158"><span class="co">#&gt; 9347 -0.055089446  0.0615863493</span></a>
+<a class="sourceLine" id="cb17-159" title="159"><span class="co">#&gt; 9359 -0.048633702 -0.0193351608</span></a>
+<a class="sourceLine" id="cb17-160" title="160"><span class="co">#&gt; 9397 -0.475984110  0.1004098564</span></a>
+<a class="sourceLine" id="cb17-161" title="161"><span class="co">#&gt; 9508  0.106191420 -0.0031993549</span></a>
+<a class="sourceLine" id="cb17-162" title="162"><span class="co">#&gt; 9550 -0.265395980  0.0857421977</span></a>
+<a class="sourceLine" id="cb17-163" title="163"><span class="co">#&gt; 9586 -0.141583246  0.0331380964</span></a></code></pre></div>
 </div>
 </div>
 <div id="cautions-and-notes" class="section level2">
@@ -998,6 +980,9 @@ code > span.fu { color: #900; font-weight: bold; }  code > span.er { color: #a61
 <p>Often it is desirable to include aggregate values in the level two or level three part of the model such as level 1 SES and level 2 mean SES for the group. In cases where there is missingness in either the level 1 SES values, or in the level 2 mean SES values, caution and careful thought need to be given to how to proceed with the imputation routine.</p>
 </div>
 
+
+
+<!-- code folding -->
 
 
 <!-- dynamically load mathjax for compatibility with self-contained -->
