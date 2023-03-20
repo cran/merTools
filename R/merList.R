@@ -197,7 +197,7 @@ ranef.merModList <- function(object, ...){
 #' fml <- "Reaction ~ Days + (Days | Subject)"
 #' mod <- lmerModList(fml, data = sim_list)
 #' VarCorr(mod)
-VarCorr.merModList <- function(x, sigma = 1, rdig = 3L){
+VarCorr.merModList <- function(x, sigma = 1, rdig = 3L, ...){
   modList <- x
   ngrps <- length(VarCorr(modList[[1]]))
   errorList <- vector(mode = 'list', length = ngrps)
@@ -386,12 +386,13 @@ print.summary.merModList <- function(x, ...){
 #' summary(mod)
 #' }
 lmerModList <- function(formula, data, parallel = FALSE, ...){
-  if(parallel) {
+  if (parallel) {
     if (requireNamespace("future.apply", quietly=TRUE)) {
       ml <- future.apply::future_lapply(data, function(d) lmer(formula, data = d, ...))
+    } else {
+      warning("Parallel set but future.apply not available. Running sequentially.")
+      ml <- lapply(data, function(d) lmer(formula, data = d, ...))
     }
-    warning("Parallel set but future.apply not available. Running sequentially.")
-    ml <- lapply(data, function(d) lmer(formula, data = d, ...))
   } else {
     ml <- lapply(data, function(d) lmer(formula, data = d, ...))
   }
@@ -402,7 +403,6 @@ lmerModList <- function(formula, data, parallel = FALSE, ...){
 
 #' Apply a Bayesian multilevel model to a list of data frames
 #'
-#' @inheritParams lmerModList
 #' @rdname merModList
 #' @return a merModList
 #' @importFrom blme blmer
@@ -423,7 +423,6 @@ blmerModList <- function(formula, data, parallel = FALSE, ...){
 
 #' Apply a generalized linear multilevel model to a list of data frames
 #'
-#' @inheritParams lmerModList
 #' @rdname merModList
 #' @return a merModList
 #' @export
@@ -443,7 +442,6 @@ glmerModList <- function(formula, data, parallel = FALSE, ...){
 
 #' Apply a Bayesian generalized linear multilevel model to a list of data frames
 #'
-#' @inheritParams lmerModList
 #' @rdname merModList
 #' @return a merModList
 #' @importFrom blme bglmer

@@ -1,22 +1,12 @@
-[![Travis-CI Build
-Status](https://travis-ci.org/jknowles/merTools.png?branch=master)](https://travis-ci.org/jknowles/merTools)
-[![Coverage
-Status](https://coveralls.io/repos/jknowles/merTools/badge.svg?branch=master)](https://coveralls.io/r/jknowles/merTools?branch=master)
-[![Github
-Issues](http://githubbadges.herokuapp.com/jknowles/merTools/issues.svg)](https://github.com/jknowles/merTools/issues)
-[![Pending
-Pull-Requests](http://githubbadges.herokuapp.com/jknowles/merTools/pulls.svg?style=flat)](https://github.com/jknowles/merTools/pulls)
-[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/merTools)](https://cran.r-project.org/package=merTools)
+[![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/merTools)](https://cran.r-project.org/package=merTools)
 [![Downloads](http://cranlogs.r-pkg.org/badges/merTools)](https://cran.r-project.org/package=merTools)
 [![Downloads](http://cranlogs.r-pkg.org/badges/grand-total/merTools)](https://cran.r-project.org/package=merTools)
-[![Research software
-impact](http://depsy.org/api/package/cran/merTools/badge.svg)](http://depsy.org/package/r/merTools)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
 # merTools
 
-A package for getting the most of our multilevel models in R
+A package for getting the most out of large multilevel models in R
 
 by Jared E. Knowles and Carl Frederick
 
@@ -40,64 +30,46 @@ install.packages("merTools")
 
 ## Recent Updates
 
+## merTools 0.6.1 (Spring 2023)
+
+- Maintenance release to keep package listed on CRAN
+- Fix a small bug where parallel code path is run twice (#126)
+- Update plotting functions to avoid deprecated `aes_string()` calls
+  (#127)
+- Fix (#115) in description
+- Speed up PI using @bbolker pull request (#120)
+- Updated package maintainer contact information
+
 ### merTools 0.5.0
 
 #### New Features
 
-  - `subBoot` now works with `glmerMod` objects as well
-  - `reMargins` a new function that allows the user to marginalize the
-    prediction over breaks in the distribution of random effect
-    distributions, see `?reMargins` and the new `reMargins` vignette
-    (closes \#73)
+- `subBoot` now works with `glmerMod` objects as well
+- `reMargins` a new function that allows the user to marginalize the
+  prediction over breaks in the distribution of random effect
+  distributions, see `?reMargins` and the new `reMargins` vignette
+  (closes \#73)
 
 #### Bug fixes
 
-  - Fixed an issue where known convergence errors were issuing warnings
-    and causing the test suite to not work
-  - Fixed an issue where models with a random slope, no intercept, and
-    no fixed term were unable to be predicted (\#101)
-  - Fixed an issue with shinyMer not working with substantive fixed
-    effects (\#93)
+- Fixed an issue where known convergence errors were issuing warnings
+  and causing the test suite to not work
+- Fixed an issue where models with a random slope, no intercept, and no
+  fixed term were unable to be predicted (#101)
+- Fixed an issue with shinyMer not working with substantive fixed
+  effects (#93)
 
 ### merTools 0.4.1
 
 #### New Features
 
-  - Standard errors reported by `merModList` functions now apply the
-    Rubin correction for multiple imputation
+- Standard errors reported by `merModList` functions now apply the Rubin
+  correction for multiple imputation
 
 #### Bug fixes
 
-  - Contribution by Alex Whitworth (@alexWhitworth) adding error
-    checking to plotting functions
-
-### merTools 0.4.0
-
-#### New Features
-
-  - Added vignette on using multilevel models with multiply imputed data
-  - Added `fixef` and `ranef` generics for `merModList` objects
-  - Added `fastdisp` generic for `merModList`
-  - Added `summary` generic for `merModList`
-  - Added `print` generic for `merModList`
-  - Documented all generics for `merModList` including examples and a
-    new imputation vignette
-  - Added `modelInfo` generic for `merMod` objects that provides simple
-    summary stats about a whole model
-
-#### Bug Fixes
-
-  - Fix bug that returned NaN for `std.error` of a multiply imputed
-    `merModList` when calling `modelRandEffStats`
-  - Fixed bug in `REimpact` where some column names in `newdata` would
-    prevent the prediction intervals from being computed correctly.
-    Users will now be warned.
-  - Fixed bug in `wiggle` where documentation incorrectly stated the
-    arguments to the function and the documentation did not describe
-    function correctly
-
-See [NEWS.md](https://github.com/jknowles/merTools/blob/master/NEWS.md)
-for more details.
+- Contribution by Alex Whitworth (@alexWhitworth) adding error checking
+  to plotting functions
 
 ## Shiny App and Demo
 
@@ -105,11 +77,9 @@ The easiest way to demo the features of this application is to use the
 bundled Shiny application which launches a number of the metrics here to
 aide in exploring the model. To do this:
 
-``` r
-library(merTools)
-m1 <- lmer(y ~ service + lectage + studage + (1|d) + (1|s), data=InstEval)
-shinyMer(m1, simData = InstEval[1:100, ]) # just try the first 100 rows of data
-```
+    library(merTools)
+    m1 <- lmer(y ~ service + lectage + studage + (1|d) + (1|s), data=InstEval)
+    shinyMer(m1, simData = InstEval[1:100, ]) # just try the first 100 rows of data
 
 ![](man/figures/README-predPanel.png)
 
@@ -160,20 +130,19 @@ With `predictInterval` we obtain predictions that are more like the
 standard objects produced by `lm` and `glm`:
 
 ``` r
-#predictInterval(m1, newdata = InstEval[1:10, ]) # all other parameters are optional
 predictInterval(m1, newdata = InstEval[1:10, ], n.sims = 500, level = 0.9, 
                 stat = 'median')
 #>         fit      upr       lwr
-#> 1  3.015857 5.088929 1.1835562
-#> 2  3.277143 5.220196 1.1038519
-#> 3  3.404557 5.350846 1.3090942
-#> 4  3.108511 5.314549 0.9256501
-#> 5  3.260811 5.420831 1.2343590
-#> 6  3.150673 5.267239 1.3318446
-#> 7  4.085517 6.192887 2.1149662
-#> 8  3.776922 5.715385 1.7600005
-#> 9  3.799624 6.045041 1.7959515
-#> 10 3.195235 5.180454 1.2971043
+#> 1  3.107632 5.190402 0.9368052
+#> 2  3.097741 4.879558 1.2738180
+#> 3  3.401938 5.503266 1.3132856
+#> 4  3.121414 5.060498 1.1299338
+#> 5  3.290234 5.422217 1.2647681
+#> 6  3.146418 5.023299 1.4372531
+#> 7  4.086394 6.158931 1.9473926
+#> 8  3.738121 5.631336 1.7886288
+#> 9  3.763437 5.734384 1.6697661
+#> 10 3.352128 5.337015 1.2505294
 ```
 
 Note that `predictInterval` is slower because it is computing
@@ -195,52 +164,53 @@ interval.
 predictInterval(m1, newdata = InstEval[1:10, ], n.sims = 200, level = 0.9, 
                 stat = 'median', which = "all")
 #>      effect         fit      upr       lwr obs
-#> 1  combined  3.18738014 4.966371  1.126030   1
-#> 2  combined  2.97373166 5.126738  1.274230   2
-#> 3  combined  3.27899702 5.362678  1.472948   3
-#> 4  combined  3.23788384 5.020504  1.050771   4
-#> 5  combined  3.37136338 5.350912  1.242096   5
-#> 6  combined  3.15899583 5.217095  1.331035   6
-#> 7  combined  4.14067417 6.187147  2.068142   7
-#> 8  combined  4.02432057 6.067216  1.654789   8
-#> 9  combined  3.77403216 5.554346  1.964592   9
-#> 10 combined  3.42735845 5.296553  1.435939  10
-#> 11        s  0.07251608 1.918014 -2.089567   1
-#> 12        s  0.08247714 1.953635 -1.810187   2
-#> 13        s  0.09157851 2.184732 -1.943005   3
-#> 14        s  0.13788161 1.811599 -1.622534   4
-#> 15        s  0.07322001 1.741112 -2.165038   5
-#> 16        s -0.11882131 1.735864 -2.302783   6
-#> 17        s  0.19512517 2.245456 -1.630585   7
-#> 18        s  0.17986892 2.064228 -1.743939   8
-#> 19        s  0.42961647 2.089356 -1.536597   9
-#> 20        s  0.41084777 2.124038 -1.681811  10
-#> 21        d -0.16574871 1.846935 -2.142487   1
-#> 22        d -0.05194920 1.839777 -1.897692   2
-#> 23        d  0.09294099 2.062341 -1.811622   3
-#> 24        d -0.27500494 1.470227 -2.026380   4
-#> 25        d  0.10836089 1.758614 -1.613323   5
-#> 26        d -0.10553477 2.057018 -1.928175   6
-#> 27        d  0.58243006 2.712166 -1.427938   7
-#> 28        d  0.24593391 2.142436 -1.421031   8
-#> 29        d  0.01724017 2.472836 -1.853576   9
-#> 30        d -0.19182347 1.693597 -2.412778  10
-#> 31    fixed  3.16933865 5.219839  1.287274   1
-#> 32    fixed  3.16287615 5.140116  1.524180   2
-#> 33    fixed  3.29291541 4.902726  1.382934   3
-#> 34    fixed  3.01686447 5.285364  1.248745   4
-#> 35    fixed  3.30761049 5.106185  1.420678   5
-#> 36    fixed  3.32362576 4.872431  1.557399   6
-#> 37    fixed  3.27480918 5.680335  1.374587   7
-#> 38    fixed  3.47316648 5.063170  1.595717   8
-#> 39    fixed  3.33332336 5.208318  1.435965   9
-#> 40    fixed  3.27800249 5.158261  1.463540  10
+#> 1  combined  3.25969862 5.093473  1.088987   1
+#> 2  combined  3.25185416 5.195660  1.212398   2
+#> 3  combined  3.48995449 5.513208  1.432098   3
+#> 4  combined  3.33674443 4.943025  1.220998   4
+#> 5  combined  3.29898222 5.594381  1.301636   5
+#> 6  combined  3.22542573 5.121188  1.285540   6
+#> 7  combined  4.35693740 6.456601  2.095860   7
+#> 8  combined  3.77082296 5.755422  1.540146   8
+#> 9  combined  3.77734423 6.131939  2.157273   9
+#> 10 combined  3.28954595 5.079436  1.221874  10
+#> 11        s -0.08603730 2.203910 -1.704490   1
+#> 12        s  0.22623596 1.850055 -1.624032   2
+#> 13        s  0.30822074 1.894273 -1.964165   3
+#> 14        s  0.22535767 2.270494 -1.856316   4
+#> 15        s -0.14243952 1.787597 -2.050745   5
+#> 16        s -0.30163547 1.817632 -2.103720   6
+#> 17        s  0.38506882 2.098101 -1.341332   7
+#> 18        s  0.44294445 2.415432 -1.500022   8
+#> 19        s  0.40448327 2.399836 -1.913328   9
+#> 20        s  0.22839660 2.570579 -1.745981  10
+#> 21        d -0.31888163 1.606477 -2.297953   1
+#> 22        d -0.37366911 1.555461 -2.075957   2
+#> 23        d -0.16054175 1.715221 -2.203618   3
+#> 24        d -0.20694151 1.876587 -2.340907   4
+#> 25        d  0.11129869 2.016248 -1.774396   5
+#> 26        d -0.05587943 1.782312 -2.069027   6
+#> 27        d  0.56077534 2.799003 -1.288401   7
+#> 28        d  0.19538590 2.276306 -1.843640   8
+#> 29        d  0.26885661 2.163566 -1.712320   9
+#> 30        d -0.26743035 1.520186 -2.388651  10
+#> 31    fixed  3.51054377 5.293941  1.341126   1
+#> 32    fixed  3.26108728 4.927388  1.169438   2
+#> 33    fixed  2.97127880 4.866901  1.215838   3
+#> 34    fixed  3.03712179 5.036753  1.154742   4
+#> 35    fixed  3.39117433 5.284877  1.437624   5
+#> 36    fixed  3.32728732 5.126942  1.577967   6
+#> 37    fixed  3.34239946 5.172533  1.513171   7
+#> 38    fixed  3.35180632 5.118299  1.431649   8
+#> 39    fixed  3.58880671 5.105028  1.554977   9
+#> 40    fixed  3.27099171 5.169194  1.489591  10
 ```
 
 This can lead to some useful plotting:
 
 ``` r
 library(ggplot2)
+#> Warning: package 'ggplot2' was built under R version 4.2.2
 plotdf <- predictInterval(m1, newdata = InstEval[1:10, ], n.sims = 2000, 
                           level = 0.9, stat = 'median', which = "all", 
                           include.resid.var = FALSE)
@@ -257,9 +227,11 @@ ggplot(plotdf, aes(x = obs, y = fit, ymin = lwr, ymax = upr)) +
   geom_hline(yintercept = 0, color = I("red"), size = 1.1) +
   scale_x_continuous(breaks = c(1, 10)) +
   facet_grid(residVar~effect) + theme_bw()
+#> Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+#> ℹ Please use `linewidth` instead.
 ```
 
-![](man/figures/README_unnamed-chunk-8-1.png)<!-- -->
+![](man/figures/README_unnamed-chunk-7-1.png)<!-- -->
 
 We can also investigate the makeup of the prediction for each
 observation.
@@ -272,7 +244,7 @@ ggplot(plotdf[plotdf$obs < 6,],
   facet_grid(residVar~obs) + theme_bw()
 ```
 
-![](man/figures/README_unnamed-chunk-9-1.png)<!-- -->
+![](man/figures/README_unnamed-chunk-8-1.png)<!-- -->
 
 ## Plotting
 
@@ -284,12 +256,12 @@ fixed and random effect parameters.
 feSims <- FEsim(m1, n.sims = 100)
 head(feSims)
 #>          term        mean      median         sd
-#> 1 (Intercept)  3.22450825  3.22391563 0.01814137
-#> 2    service1 -0.07020093 -0.07020791 0.01288904
-#> 3   lectage.L -0.18513512 -0.18608254 0.01616639
-#> 4   lectage.Q  0.02471446  0.02512454 0.01087328
-#> 5   lectage.C -0.02594511 -0.02425488 0.01300243
-#> 6   lectage^4 -0.01880190 -0.01887871 0.01410205
+#> 1 (Intercept)  3.22302416  3.22328224 0.01893656
+#> 2    service1 -0.07353238 -0.07503196 0.01322848
+#> 3   lectage.L -0.18550746 -0.18689223 0.01757622
+#> 4   lectage.Q  0.02531346  0.02532793 0.01262718
+#> 5   lectage.C -0.02446487 -0.02332242 0.01217267
+#> 6   lectage^4 -0.02074847 -0.02171527 0.01314005
 ```
 
 And we can also plot this:
@@ -306,12 +278,12 @@ We can also quickly make caterpillar plots for the random-effect terms:
 reSims <- REsim(m1, n.sims = 100)
 head(reSims)
 #>   groupFctr groupID        term        mean      median        sd
-#> 1         s       1 (Intercept)  0.21962903  0.26429668 0.3113619
-#> 2         s       2 (Intercept) -0.04134078 -0.03064871 0.2922675
-#> 3         s       3 (Intercept)  0.31819925  0.32744181 0.3530303
-#> 4         s       4 (Intercept)  0.21088441  0.22023284 0.3176695
-#> 5         s       5 (Intercept)  0.02441805 -0.02929245 0.3350150
-#> 6         s       6 (Intercept)  0.10534748  0.12763830 0.2284094
+#> 1         s       1 (Intercept)  0.15555959  0.14798520 0.3359070
+#> 2         s       2 (Intercept) -0.03924940 -0.03158545 0.3216017
+#> 3         s       3 (Intercept)  0.32218754  0.29815012 0.2944466
+#> 4         s       4 (Intercept)  0.22220605  0.19904690 0.2887927
+#> 5         s       5 (Intercept)  0.05738118  0.03711978 0.3373406
+#> 6         s       6 (Intercept)  0.14302324  0.14638548 0.2363066
 ```
 
 ``` r
@@ -363,7 +335,7 @@ ggplot(ranks, aes(x = term, y = estimate)) +
   theme_bw()
 ```
 
-![](man/figures/README_unnamed-chunk-13-1.png)<!-- -->
+![](man/figures/README_unnamed-chunk-12-1.png)<!-- -->
 
 ## Effect Simulation
 
@@ -378,11 +350,11 @@ impSim <- REimpact(m1, InstEval[7, ], groupFctr = "d", breaks = 5,
 #> Warning: executing %dopar% sequentially: no parallel backend registered
 impSim
 #>   case bin   AvgFit     AvgFitSE nobs
-#> 1    1   1 2.797430 2.900363e-04  193
-#> 2    1   2 3.263396 6.627139e-05  240
-#> 3    1   3 3.551957 5.770126e-05  254
-#> 4    1   4 3.841343 6.469439e-05  265
-#> 5    1   5 4.236372 2.100511e-04  176
+#> 1    1   1 2.777249 2.863249e-04  193
+#> 2    1   2 3.247372 6.770648e-05  240
+#> 3    1   3 3.546850 5.480821e-05  254
+#> 4    1   4 3.817535 6.531969e-05  265
+#> 5    1   5 4.216303 2.176350e-04  176
 ```
 
 The result of `REimpact` shows the change in the `yhat` as the case we
@@ -420,9 +392,8 @@ data(VerbAgg)
 fmVA <- glmer(r2 ~ (Anger + Gender + btype + situ)^2 +
            (1|id) + (1|item), family = binomial, 
            data = VerbAgg)
-#> Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl =
-#> control$checkConv, : Model failed to converge with max|grad| = 0.0505464
-#> (tol = 0.001, component 1)
+#> Warning in checkConv(attr(opt, "derivs"), opt$par, ctrl = control$checkConv, :
+#> Model failed to converge with max|grad| = 0.0543724 (tol = 0.002, component 1)
 ```
 
 Now we prep the data using the `draw` function in `merTools`. Here we
@@ -442,17 +413,17 @@ newData <- wiggle(newData, var = "situ",
 newData <- wiggle(newData, var = "Anger", 
                   valueslist = list(unique(VerbAgg$Anger)))
 head(newData, 10)
-#>    r2 Anger Gender btype  situ  id        item
-#> 1   N    20      F curse other 149 S3WantCurse
-#> 2   N    20      F scold other 149 S3WantCurse
-#> 3   N    20      F shout other 149 S3WantCurse
-#> 4   N    20      F curse  self 149 S3WantCurse
-#> 5   N    20      F scold  self 149 S3WantCurse
-#> 6   N    20      F shout  self 149 S3WantCurse
-#> 7   N    11      F curse other 149 S3WantCurse
-#> 8   N    11      F scold other 149 S3WantCurse
-#> 9   N    11      F shout other 149 S3WantCurse
-#> 10  N    11      F curse  self 149 S3WantCurse
+#>    r2 Anger Gender btype  situ id        item
+#> 1   N    20      F curse other  5 S3WantCurse
+#> 2   N    20      F scold other  5 S3WantCurse
+#> 3   N    20      F shout other  5 S3WantCurse
+#> 4   N    20      F curse  self  5 S3WantCurse
+#> 5   N    20      F scold  self  5 S3WantCurse
+#> 6   N    20      F shout  self  5 S3WantCurse
+#> 7   N    11      F curse other  5 S3WantCurse
+#> 8   N    11      F scold other  5 S3WantCurse
+#> 9   N    11      F shout other  5 S3WantCurse
+#> 10  N    11      F curse  self  5 S3WantCurse
 ```
 
 The next step is familiar – we simply pass this new dataset to
@@ -470,6 +441,7 @@ ggplot(plotdf, aes(y = fit, x = Anger, color = btype, group = btype)) +
   geom_point() + geom_smooth(aes(color = btype), method = "lm") + 
   facet_wrap(~situ) + theme_bw() +
   labs(y = "Predicted Probability")
+#> `geom_smooth()` using formula = 'y ~ x'
 ```
 
 ![](man/figures/README_substImpactPredict-1.png)<!-- -->
@@ -492,4 +464,4 @@ ggplot(mfx, aes(y = fit_combined, x = breaks, group = case)) +
        title = "Simulated Effect of Item Intercept on Predicted Probability for 10 Random Cases")
 ```
 
-![](man/figures/README_unnamed-chunk-15-1.png)<!-- -->
+![](man/figures/README_unnamed-chunk-14-1.png)<!-- -->
