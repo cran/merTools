@@ -7,9 +7,7 @@
 \method{ranef}{merModList}(object, ...)
 }
 \arguments{
-\item{object}{an object of a class of fitted models with
-    random effects, typically a
-    \code{\linkS4class{merMod}} object.}
+\item{object}{a \code{\link{merModList}} list fitted models with random effects}
 
 \item{...}{some methods for these generic functions
     require additional arguments.}
@@ -22,8 +20,8 @@ Extract random-effects estimates for a merModList
 }
 \details{
 Extract the estimates of the random-effects parameters from a list of
-fitted \code{merMod} models. Takes the mean of the individual \code{ranef}
-objects for each of the component models in the \code{merModList}.
+fitted \code{\link[lme4]{merMod}} models. Takes the mean of the individual \code{ranef}
+objects for each of the component models in the \code{\link{merModList}}.
 }
 \examples{
 \donttest{
